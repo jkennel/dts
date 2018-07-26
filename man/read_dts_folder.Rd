@@ -4,12 +4,14 @@
 \alias{read_dts_folder}
 \title{read_dts_folder}
 \usage{
-read_dts_folder(directory, out_path, ...)
+read_dts_folder(in_dir, n_cores)
 }
 \arguments{
-\item{directory}{location of the xml files}
+\item{in_dir}{location of the xml files}
 
-\item{...}{arguments to pass to mclapply}
+\item{n_cores}{specify the number of cores}
+
+\item{out_dir}{location of the xml files}
 }
 \description{
 read_dts_folder

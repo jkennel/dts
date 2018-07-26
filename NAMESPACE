@@ -2,3 +2,6 @@
 
 export(read_dts_folder)
 export(read_dts_xml)
+export(read_dts_xml_data)
+export(read_dts_xml_meta)
+export(write_dts_xml)

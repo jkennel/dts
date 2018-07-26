@@ -105,8 +105,7 @@ read_dts_folder <- function(in_dir, n_cores) {
     
     clusterEvalQ(cl, { 
       library(XML) 
-      library(data.table) 
-      library(anytime)})
+      library(data.table)})
     clusterExport(cl, c('read_dts_xml', 'read_dts_xml_data', 'read_dts_xml_meta'))
     
     res <- parallel::parLapply(cl, xml_files, read_dts_xml)
@@ -172,7 +171,7 @@ write_dts_xml <- function(in_dir, out_dir, n_cores) {
 # cl <- makeCluster(4)
 # registerDoParallel(cl)
 # 
-# aa <- foreach(i = seq_along(xml_files), .export = 'read_dts_xml',  .packages=c('XML', 'data.table', 'anytime')) %dopar% {
+# aa <- foreach(i = seq_along(xml_files), .export = 'read_dts_xml',  .packages=c('XML', 'data.table')) %dopar% {
 #   read_dts_xml(xml_files[i])
 # 
 # }

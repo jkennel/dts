@@ -20,7 +20,7 @@ n_cores = 4
 
 write_dts_xml(in_dir, out_dir, n_cores)
 
-Two files will be written meta.fst and data.fst
+Two files will be written: meta.fst and data.fst
 
 ## Read into memory
 

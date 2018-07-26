@@ -15,7 +15,6 @@ read_dts_xml <- function(file_path) {
               data = read_dts_xml_data(r)))
 }
 
-as.numeric(as.POSIXct('2017-05-17T17:26:27.375Z', format = "%Y-%m-%dT%H:%M:%OSZ", tz = 'UTC'))
 
 
 #' read_dts_xml_meta
@@ -139,55 +138,3 @@ write_dts_xml <- function(in_dir, out_dir, n_cores) {
 }
 
 
-
-
-# library(purrr)
-# library(dts)
-# library(foreach)
-# library(doParallel)
-# in_dir <- '/media/kennel/Data/tmp/DTS_Test'
-# out_dir <- '/media/kennel/Data/tmp/'
-# system.time(
-#   b <- read_dts_folder(in_dir, n_cores = 4)
-# )
-# 
-# 
-# xml_files <- list.files(in_dir,
-#                         pattern = '\\.xml$',
-#                         full.names = TRUE)
-# system.time(
-#   a <- read_dts_folder('/media/kennel/Data/tmp/DTS_Test', 4)
-# )
-# 
-# system.time({
-# meta <- rbindlist(map(a, function(x) x$meta))
-# data <- rbindlist(map(a, function(x) x$data))
-# }
-# )
-
-# 
-# system.time({
-# 
-# cl <- makeCluster(4)
-# registerDoParallel(cl)
-# 
-# aa <- foreach(i = seq_along(xml_files), .export = 'read_dts_xml',  .packages=c('XML', 'data.table')) %dopar% {
-#   read_dts_xml(xml_files[i])
-# 
-# }
-# stopCluster(cl)
-# })
-
-# 
-# test <- lapply(xml_files, read_dts_xml)
-
-# 
-# library(dts)
-# system.time(
-#   aa <- read_dts_folder('/media/kennel/Data/tmp/DTS_Test',
-#                         '/media/kennel/Data/tmp/dts.fst', n_cores = 4)
-# )
-# 
-# read_dts_xml(xml_files[703])
-# read_dts_xml(xml_files[704])
-# read_dts_xml(xml_files[705])

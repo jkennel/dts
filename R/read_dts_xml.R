@@ -1,18 +1,25 @@
 #' read_dts_xml
 #'
 #' @param file_path path to the file
+#' @param trim whether to trim the length of the cable
 #'
 #' @return dts table of results
 #' @export
 #'
 #' @examples
-read_dts_xml <- function(file_path) {
+read_dts_xml <- function(file_path, trim = TRUE) {
   
   x <- xmlParse(file_path)
   r <- xmlRoot(x)
   
-  return(list(meta = read_dts_xml_meta(r), 
-              data = read_dts_xml_data(r)))
+  dts <- list(meta = read_dts_xml_meta(r), 
+              data = read_dts_xml_data(r))
+  
+  if (trim){
+    dts$data <- dts$data[distance < (dts$meta$fibre_length)]
+  }
+  
+  return(dts)
 }
 
 
@@ -84,16 +91,16 @@ read_dts_xml_data <- function(r) {
 #'
 #' @param in_path location of the xml files
 #' @param n_cores specify the number of cores
-#'
+#' @param trim whether to trim the length of the cable
 #' @return
 #' @export
 #'
 #' @examples
-read_dts <- function(in_path, n_cores = 1) {
+read_dts <- function(in_path, n_cores = 1, trim = TRUE) {
   
   # read single file
   if(file_test('-f', in_path)) {
-    return(lapply(in_path, read_dts_xml))
+    return(lapply(in_path, read_dts_xml, trim = trim))
   }
   
   # read directory
@@ -103,7 +110,7 @@ read_dts <- function(in_path, n_cores = 1) {
   
   
   if(n_cores == 1) {
-    return(lapply(xml_files, read_dts_xml))
+    return(lapply(xml_files, read_dts_xml, trim = trim))
   } else {
     # Initiate cluster
     cl <- makePSOCKcluster(n_cores)
@@ -111,9 +118,9 @@ read_dts <- function(in_path, n_cores = 1) {
     clusterEvalQ(cl, { 
       library(XML) 
       library(data.table)})
-    clusterExport(cl, c('read_dts_xml', 'read_dts_xml_data', 'read_dts_xml_meta'))
+    clusterExport(cl, c('read_dts_xml', 'read_dts_xml_data', 'read_dts_xml_meta', 'trim'))
     
-    res <- parallel::parLapply(cl, xml_files, read_dts_xml)
+    res <- parallel::parLapply(cl, xml_files, read_dts_xml, trim = trim)
     
     stopCluster(cl)
   }
@@ -127,13 +134,16 @@ read_dts <- function(in_path, n_cores = 1) {
 #' @param in_path input directory
 #' @param out_path output directory
 #' @param n_cores how many cores
-#'
+#' @param trim whether to trim the length of the cable
+#' 
 #' @return
 #' @export
 #'
 #' @examples
-write_dts <- function(in_path, out_path, n_cores = 1) {
-  dts  <- read_dts(in_path, n_cores)
+write_dts <- function(in_path, out_path, n_cores = 1, trim = TRUE) {
+
+  dts  <- read_dts(in_path, n_cores, trim)
+
   
   write_fst(rbindlist(map(dts, function(x) x$meta)), 
             paste0(out_path, 'meta.fst'),
@@ -141,20 +151,8 @@ write_dts <- function(in_path, out_path, n_cores = 1) {
   write_fst(rbindlist(map(dts, function(x) x$data)), 
             paste0(out_path, 'data.fst'),
             compress = 50)
+  
 }
 
 
-#' trim_dts
-#'
-#' @param xml_dat xml data read from read_dts 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-trim_dts <- function(xml_dat) {
-  map(xml_dat, function(x){
-    x$data[, `:=`(probe_1 = x$meta$probe_1,
-                 probe_2 = x$meta$probe_2)][distance < (x$meta$fibre_length)]
-  })
-}
+

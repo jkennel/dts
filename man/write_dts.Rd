@@ -4,7 +4,7 @@
 \alias{write_dts}
 \title{write_dts}
 \usage{
-write_dts(in_path, out_path, n_cores = 1)
+write_dts(in_path, out_path, n_cores = 1, trim = TRUE)
 }
 \arguments{
 \item{in_path}{input directory}
@@ -12,6 +12,8 @@ write_dts(in_path, out_path, n_cores = 1)
 \item{out_path}{output directory}
 
 \item{n_cores}{how many cores}
+
+\item{trim}{whether to trim the length of the cable}
 }
 \description{
 write_dts

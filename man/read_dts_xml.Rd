@@ -4,10 +4,12 @@
 \alias{read_dts_xml}
 \title{read_dts_xml}
 \usage{
-read_dts_xml(file_path)
+read_dts_xml(file_path, trim = TRUE)
 }
 \arguments{
 \item{file_path}{path to the file}
+
+\item{trim}{whether to trim the length of the cable}
 }
 \value{
 dts table of results

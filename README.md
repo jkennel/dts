@@ -7,4 +7,4 @@ Under construction
 
 library(devtools)
 
-install_github('g360group/dts')
+install_github('g360codes/dts')

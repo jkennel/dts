@@ -80,24 +80,30 @@ read_dts_xml_data <- function(r) {
 }
 
   
-#' read_dts_folder
+#' read_dts
 #'
-#' @param in_dir location of the xml files
-#' @param out_dir location of the xml files
+#' @param in_path location of the xml files
 #' @param n_cores specify the number of cores
 #'
 #' @return
 #' @export
 #'
 #' @examples
-read_dts_folder <- function(in_dir, n_cores) {
-  xml_files <- list.files(in_dir, 
+read_dts <- function(in_path, n_cores = 1) {
+  
+  # read single file
+  if(file_test('-f', in_path)) {
+    return(lapply(in_path, read_dts_xml))
+  }
+  
+  # read directory
+  xml_files <- list.files(in_path, 
                           pattern = '\\.xml$', 
                           full.names = TRUE)
   
   
   if(n_cores == 1) {
-    res <- lapply(xml_files, read_dts_xml)
+    return(lapply(xml_files, read_dts_xml))
   } else {
     # Initiate cluster
     cl <- makePSOCKcluster(n_cores)
@@ -116,25 +122,39 @@ read_dts_folder <- function(in_dir, n_cores) {
 }
 
 
-#' write_dts_xml
+#' write_dts
 #'
-#' @param in_dir input directory
-#' @param out_dir output directory
+#' @param in_path input directory
+#' @param out_path output directory
 #' @param n_cores how many cores
 #'
 #' @return
 #' @export
 #'
 #' @examples
-write_dts_xml <- function(in_dir, out_dir, n_cores) {
-  dts  <- read_dts_folder(in_dir, n_cores)
+write_dts <- function(in_path, out_path, n_cores = 1) {
+  dts  <- read_dts(in_path, n_cores)
   
   write_fst(rbindlist(map(dts, function(x) x$meta)), 
-            paste0(out_dir, 'meta.fst'),
+            paste0(out_path, 'meta.fst'),
             compress = 50)
   write_fst(rbindlist(map(dts, function(x) x$data)), 
-            paste0(out_dir, 'data.fst'),
+            paste0(out_path, 'data.fst'),
             compress = 50)
 }
 
 
+#' trim_dts
+#'
+#' @param xml_dat xml data read from read_dts 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+trim_dts <- function(xml_dat) {
+  map(xml_dat, function(x){
+    x$data[, `:=`(probe_1 = x$meta$probe_1,
+                 probe_2 = x$meta$probe_2)][distance < (x$meta$fibre_length)]
+  })
+}

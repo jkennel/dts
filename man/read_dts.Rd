@@ -4,14 +4,12 @@
 \alias{read_dts}
 \title{read_dts}
 \usage{
-read_dts(in_path, n_cores = 1, trim = TRUE)
+read_dts(in_path, n_cores = 1)
 }
 \arguments{
 \item{in_path}{location of the xml files}
 
 \item{n_cores}{specify the number of cores}
-
-\item{trim}{whether to trim the length of the cable}
 }
 \description{
 read_dts

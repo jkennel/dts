@@ -4,7 +4,7 @@
 \alias{read_dts_xml_data}
 \title{read_dts_xml_data}
 \usage{
-read_dts_xml_data(r)
+read_dts_xml_data(r, wh)
 }
 \arguments{
 \item{r}{root node of xml file}

@@ -1,27 +1,32 @@
 #' read_dts_xml
 #'
 #' @param file_path path to the file
-#' @param trim whether to trim the length of the cable
 #'
 #' @return dts table of results
 #' @export
 #'
 #' @examples
-read_dts_xml <- function(file_path, trim = TRUE) {
+read_dts_xml <- function(file_path, wh) {
+
+  r <- xmlRoot(xmlParse(file_path))
   
-  x <- xmlParse(file_path)
-  r <- xmlRoot(x)
-  
-  dts <- list(meta = read_dts_xml_meta(r), 
-              data = read_dts_xml_data(r))
-  
-  if (trim){
-    dts$data <- dts$data[distance < (dts$meta$fibre_length)]
-  }
-  
-  return(dts)
+  return(list(meta = read_dts_xml_meta(r), 
+              data = read_dts_xml_data(r, wh)))
 }
 
+#' read_one
+#'
+#' @param file_path path to the file
+#'
+#' @return subset vector
+#' @export
+#'
+#' @examples
+read_one <- function(file_path) {
+  r <- xmlRoot(xmlParse(file_path))
+  limits <- c(0, read_dts_xml_meta(r)$fibre_length)
+  wh <- which(read_dts_xml_data(r)$distance %between% limits)
+}
 
 
 #' read_dts_xml_meta
@@ -60,13 +65,19 @@ read_dts_xml_meta <- function(r) {
 #' @export
 #'
 #' @examples
-read_dts_xml_data <- function(r) {
+read_dts_xml_data <- function(r, wh) {
   
   # get times
   start <- as.POSIXct(getChildrenStrings(r[['wellLog']][['minDateTimeIndex']]), format = "%Y-%m-%dT%H:%M:%OSZ", tz = 'UTC')
   
+  # max fibre length
+  fibre_length <- as.numeric(getChildrenStrings(r[['wellLog']][['customData']][['UserConfiguration']][['ChannelConfiguration']][['AcquisitionConfiguration']][['MeasurementLength']]))
+  
   # is cable double ended 
   double_ended <- as.integer(getChildrenStrings(r[['wellLog']][['customData']][['isDoubleEnded']]))
+  if (double_ended) {
+    select <- c(1, 6)
+  }
   
   # get data
   text <- paste(getChildrenStrings(r[['wellLog']][['logData']], 
@@ -74,15 +85,17 @@ read_dts_xml_data <- function(r) {
                                    asVector = TRUE),
                 collapse = '\n')
   
-  if (double_ended) {
-    dat  <- data.table::fread(text, blank.lines.skip = TRUE, select = c(1, 6))
-  } else {
-    dat  <- data.table::fread(text, blank.lines.skip = TRUE, select = c(1, 4))
-  }
   
-  return(data.table::data.table(distance = dat[[1]],
-                                temp = dat[[2]], 
-                                start = start))
+  text  <-   data.table::fread(text, 
+                               blank.lines.skip = TRUE, 
+                               select = select, 
+                               sep = ',', 
+                               nThread = 1, 
+                               strip.white = FALSE)
+  
+  setnames(text, c('distance', 'temperature'))
+  
+  return(text)
   
 }
 
@@ -91,16 +104,15 @@ read_dts_xml_data <- function(r) {
 #'
 #' @param in_path location of the xml files
 #' @param n_cores specify the number of cores
-#' @param trim whether to trim the length of the cable
 #' @return
 #' @export
 #'
 #' @examples
-read_dts <- function(in_path, n_cores = 1, trim = TRUE) {
-  
+read_dts <- function(in_path, n_cores = 1) {
+
   # read single file
   if(file_test('-f', in_path)) {
-    return(lapply(in_path, read_dts_xml, trim = trim))
+    return(lapply(in_path, read_dts_xml))
   }
   
   # read directory
@@ -108,9 +120,10 @@ read_dts <- function(in_path, n_cores = 1, trim = TRUE) {
                           pattern = '\\.xml$', 
                           full.names = TRUE)
   
+  wh <- read_one(xml_files[1])
   
   if(n_cores == 1) {
-    return(lapply(xml_files, read_dts_xml, trim = trim))
+    return(lapply(xml_files, read_dts_xml))
   } else {
     # Initiate cluster
     cl <- makePSOCKcluster(n_cores)
@@ -118,9 +131,11 @@ read_dts <- function(in_path, n_cores = 1, trim = TRUE) {
     clusterEvalQ(cl, { 
       library(XML) 
       library(data.table)})
-    clusterExport(cl, c('read_dts_xml', 'read_dts_xml_data', 'read_dts_xml_meta', 'trim'))
+    clusterExport(cl = cl, list('read_dts_xml', 
+                                'read_dts_xml_data', 
+                                'read_dts_xml_meta'))
     
-    res <- parallel::parLapply(cl, xml_files, read_dts_xml, trim = trim)
+    res <- parallel::parLapply(cl, xml_files, read_dts_xml)
     
     stopCluster(cl)
   }
@@ -134,25 +149,84 @@ read_dts <- function(in_path, n_cores = 1, trim = TRUE) {
 #' @param in_path input directory
 #' @param out_path output directory
 #' @param n_cores how many cores
-#' @param trim whether to trim the length of the cable
+#' @param one_file output a single file
+#' @param trim output to exclude certain distances
 #' 
 #' @return
 #' @export
 #'
 #' @examples
-write_dts <- function(in_path, out_path, n_cores = 1, trim = TRUE) {
+write_dts <- function(in_path, out_path, n_cores = 1, 
+                      one_file = TRUE, trim = TRUE) {
 
-  dts  <- read_dts(in_path, n_cores, trim)
+  dts  <- read_dts(in_path, n_cores)
 
+  # if one file is desired
+  if (one_file) {
+    write_fst(dts_format(dts, trim = trim), paste0(out_path, '_data.fst'), compress = 30)
+    return()
+  } else if (trim) {
+    dts <- trim_dts(dts)
+  }
   
   write_fst(rbindlist(map(dts, function(x) x$meta)), 
             paste0(out_path, 'meta.fst'),
-            compress = 50)
+            compress = 10)
+  
   write_fst(rbindlist(map(dts, function(x) x$data)), 
             paste0(out_path, 'data.fst'),
-            compress = 50)
+            compress = 30)
   
 }
 
 
+#' trim_dts
+#'
+#' @param dts object from read_dts to be trimmed by the fibre length 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+trim_dts <- function(dts) {
 
+  wh <- which(dts[[1]]$data$distance %between% c(0, dts[[1]]$meta$fibre_length))
+
+  dts <- map(dts, function(x){
+    x$data <- x$data[wh]
+    return(x)
+  })
+  
+}
+
+
+#' dts_format
+#'
+#' @param dts dts file 
+#' @param trim output to exclude certain distances
+#'
+#' @return
+#' @export
+#'
+#' @examples
+dts_format <- function(dts, trim = TRUE) {
+  
+
+  rbindlist(map(dts, trim = trim, function(x, ...){
+    if (trim) {
+      x$data <- x$data[distance %between% c(0, x$meta$fibre_length)]
+    }
+    x$data[, `:=`(probe_1 = x$meta$probe_1,
+                  probe_2 = x$meta$probe_2)]
+    return(x$data)
+  }))
+  
+}
+
+
+# xml2 version /  currently is much slower
+  # y <- read_xml('/media/kennel/Data/tmp/DTS_Test/channel 1_20150917203350375.xml', options = 'NOBLANKS')
+  # ns <- xml_ns(y)
+  # wh <- xml_find_all(y, xpath = '//d1:data', ns)
+  # txt <- xml_text(wh)
+  # tmp2 <- fread(input = paste(txt, collapse = '\n'))

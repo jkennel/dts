@@ -1,6 +1,6 @@
 #' read_dts_xml
 #'
-#' @param file_path path to the file
+#' @param in_dir path to the input folder
 #' @param n_cores number of cores to use for parallel processing
 #'
 #' @return dts list of results
@@ -129,10 +129,27 @@ dts_to_wide <- function(dts) {
   
   dts_wide <- cbind(distance, dts_wide)
   dts_wide <- rbind(times, sec, hr, probe_1, probe_2, dts_wide)
-  #write.mat(list(a=dts_wide), 'a.mat', compression = TRUE, version = 'MAT5')
   
 }
 
+
+
+#' read_dts_xml
+#'
+#' @param in_dir path to the input folder
+#' @param out_name path to the output file
+#' @param n_cores number of cores to use for parallel processing
+#'
+#' @return dts list of results
+#' @export
+#'
+#' @examples
+dts_to_matlab <- function(in_dir, out_name, n_cores = 4) {
+  rmatio::write.mat(list(dts = dts_to_wide(read_dts_xml(in_dir, n_cores))), 
+                    out_name, 
+                    compression = TRUE, 
+                    version = 'MAT5')
+}
 
 #' get_distances
 #'

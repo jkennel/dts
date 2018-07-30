@@ -4,13 +4,13 @@
 \alias{read_dts_xml}
 \title{read_dts_xml}
 \usage{
-read_dts_xml(file_path, wh)
+read_dts_xml(in_dir, n_cores)
 }
 \arguments{
 \item{file_path}{path to the file}
 }
 \value{
-dts table of results
+dts list of results
 }
 \description{
 read_dts_xml

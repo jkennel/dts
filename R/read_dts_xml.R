@@ -125,6 +125,10 @@ dts_to_wide <- function(dts) {
   sec <- times - times[2]
   hr <- sec / 3600
   
+  # set first values to zero
+  sec[1] <- 0.0
+  hr[1]  <- 0.0
+  
   dts_wide <- t(do.call('rbind', map(dts$dts, function(x){
     x$trace_data
   }))[, wh])

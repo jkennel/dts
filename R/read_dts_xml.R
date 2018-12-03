@@ -14,7 +14,7 @@
 #' origin = "1970-01-01", tz = "UTC")
 dates_r_to_matlab <- function(tms) {
   origin <- as.POSIXct('0000-01-01', tz = 'UTC')
-  (as.numeric(tms)-as.numeric(origin)) / 86400
+  ((as.numeric(tms)-as.numeric(origin)) / 86400) + 1
 }
 
 

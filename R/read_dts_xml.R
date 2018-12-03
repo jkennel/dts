@@ -113,9 +113,11 @@ dts_to_wide <- function(dts) {
   times <- c(0.0, as.numeric(map(dts$dts, function(x){
     x$trace_info$start
   })))
+  
   probe_1 <- c(0.0, as.numeric(map(dts$dts, function(x){
     x$trace_info$probe_1
   })))
+  
   probe_2 <- c(0.0, as.numeric(map(dts$dts, function(x){
     x$trace_info$probe_2
   })))
@@ -145,6 +147,9 @@ dts_to_wide <- function(dts) {
 #'
 #' @examples
 dts_to_matlab <- function(in_dir, out_name, n_cores = 4) {
+  
+  # fix dates to be matlab
+  
   rmatio::write.mat(list(dts = dts_to_wide(read_dts_xml(in_dir, n_cores))), 
                     out_name, 
                     compression = TRUE, 

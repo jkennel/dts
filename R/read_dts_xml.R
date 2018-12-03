@@ -1,13 +1,35 @@
+#' Convert R datetime to matlab datetime
+#'
+#' @param tms the POSIXct datetime in R
+#'
+#' @return datetime in matlab format
+#' @export
+#'
+#' @examples
+#' tms <- as.POSIXct('2016-01-01 12:12:10', tz = 'UTC')
+#' dates_r_to_matlab(tms)
+#'  
+#'
+#' as.POSIXct((dates_r_to_matlab(tms) - 719529) * 86400, 
+#' origin = "1970-01-01", tz = "UTC")
+dates_r_to_matlab <- function(tms) {
+  origin <- as.POSIXct('0000-01-01', tz = 'UTC')
+  (as.numeric(tms)-as.numeric(origin)) / 86400
+}
+
+
+
 #' read_dts_xml
 #'
 #' @param in_dir path to the input folder
 #' @param n_cores number of cores to use for parallel processing
+#' @param date_format 'matlab' or 'R' format
 #'
 #' @return dts list of results
 #' @export
 #'
-#' @examples
-read_dts_xml <- function(in_dir, n_cores) {
+#'
+read_dts_xml <- function(in_dir, n_cores, date_format = 'R') {
   
   # get DTS files
   fn <- list.files(in_dir, full.names = TRUE, pattern = "\\.xml$")
@@ -24,6 +46,14 @@ read_dts_xml <- function(in_dir, n_cores) {
     # Get datetime of measurement
     start <- as.POSIXct(XML::getChildrenStrings(r[['wellLog']][['minDateTimeIndex']]), format = "%Y-%m-%dT%H:%M:%OSZ", tz = 'UTC')
     end   <- as.POSIXct(XML::getChildrenStrings(r[['wellLog']][['maxDateTimeIndex']]), format = "%Y-%m-%dT%H:%M:%OSZ", tz = 'UTC')
+    
+    
+    # convert to matlab datetime
+    if (date_format == 'matlab') {
+      start <- dates_r_to_matlab(start)
+      end <- dates_r_to_matlab(end)
+    }
+    
     
     # Is cable double ended 
     double_ended <- as.integer(XML::getChildrenStrings(r[['wellLog']][['customData']][['isDoubleEnded']]))
@@ -152,9 +182,9 @@ dts_to_wide <- function(dts) {
 #' @examples
 dts_to_matlab <- function(in_dir, out_name, n_cores = 4) {
   
-  # fix dates to be matlab
+
   
-  rmatio::write.mat(list(dts = dts_to_wide(read_dts_xml(in_dir, n_cores))), 
+  rmatio::write.mat(list(dts = dts_to_wide(read_dts_xml(in_dir, n_cores, 'matlab'))), 
                     out_name, 
                     compression = TRUE, 
                     version = 'MAT5')

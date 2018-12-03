@@ -4,12 +4,14 @@
 \alias{read_dts_xml}
 \title{read_dts_xml}
 \usage{
-read_dts_xml(in_dir, n_cores)
+read_dts_xml(in_dir, n_cores, date_format = "R")
 }
 \arguments{
 \item{in_dir}{path to the input folder}
 
 \item{n_cores}{number of cores to use for parallel processing}
+
+\item{date_format}{'matlab' or 'R' format}
 }
 \value{
 dts list of results

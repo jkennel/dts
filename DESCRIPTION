@@ -10,4 +10,4 @@ License: What license is it under?
 Depends: XML, data.table, fst, parallel, purrr, rmatio
 Imports: Rcpp (>= 0.12.18)
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1

@@ -5,6 +5,6 @@ Under construction
 
 # installation
 
-library(devtools)
+library(remotes)
 
-install_github('g360codes/dts')
+remotes::install_github('g360codes/dts')

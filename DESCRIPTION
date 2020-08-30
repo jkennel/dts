@@ -7,7 +7,7 @@ Author: Jonathan Munn, Carlos Maldaner, Jonathan Kennel, Beth Parker
 Maintainer: Jonathan Kennel <jkennel@uoguelph.ca>
 Description: Helper functions for working with DTS data
 License: What license is it under?
-Depends: XML, data.table, fst, parallel, purrr, rmatio
+Depends: XML, data.table, fst, parallel, purrr, rmatio, fasttime
 Imports: Rcpp (>= 0.12.18)
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1

@@ -21,6 +21,17 @@ dates_r_to_matlab <- function(tms) {
 }
 
 
+# dates_matlab_to_r <- function(tms) {
+#   
+#   origin <- as.POSIXct('0000-01-01', tz = 'UTC')
+#   
+#   return(((as.numeric(tms) - as.numeric(origin)) / 86400.0) + 1.0)
+#   
+# }
+
+
+
+
 
 #' read_dts_xml
 #'
@@ -46,10 +57,12 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R') {
     # Parse XML file
     r <- XML::xmlRoot(XML::xmlParse(x))
     
-    # Get datetime of measurement
-    start <- as.POSIXct(XML::getChildrenStrings(r[['wellLog']][['minDateTimeIndex']]), format = "%Y-%m-%dT%H:%M:%OSZ", tz = 'UTC')
-    end   <- as.POSIXct(XML::getChildrenStrings(r[['wellLog']][['maxDateTimeIndex']]), format = "%Y-%m-%dT%H:%M:%OSZ", tz = 'UTC')
     
+    # Get datetime of measurement
+    start <- fasttime::fastPOSIXct(XML::getChildrenStrings(r[['wellLog']][['minDateTimeIndex']]), tz = 'UTC')
+    end   <- fasttime::fastPOSIXct(XML::getChildrenStrings(r[['wellLog']][['maxDateTimeIndex']]), tz = 'UTC')
+    mid   <- as.POSIXct(mean(as.numeric(c(start, end))), origin = '1970-01-01', tz = 'UTC')
+    dt    <- as.numeric(end)-as.numeric(start)
     
     # convert to matlab datetime
     if (date_format == 'matlab') {
@@ -70,6 +83,8 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R') {
     # Get reference temperatures
     probe_1  <- as.numeric(XML::getChildrenStrings(r[['wellLog']][['customData']][['probe1Temperature']]))
     probe_2  <- as.numeric(XML::getChildrenStrings(r[['wellLog']][['customData']][['probe2Temperature']]))
+
+    ref_tmp  <- as.numeric(XML::getChildrenStrings(r[['wellLog']][['customData']][['referenceTemperature']]))
     
     
     # Get data
@@ -87,17 +102,33 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R') {
     
     
     # get metadata
-    meta <- data.table::data.table(start, end, probe_1, probe_2)
+    meta <- data.table::data.table(start, 
+                                   end, 
+                                   mid, 
+                                   dt, 
+                                   probe_1, 
+                                   probe_2, 
+                                   calib_temperature = (probe_1 + probe_2) / 2,
+                                   ref_temperature = ref_tmp)
     
-    return(list(trace_data = text, trace_info = meta))
+    
+    return(list(trace_data = text, trace_time = meta))
   })
   
   # top cluster
   stopCluster(cl)
   
-  
+
   dts <- list(event_info = event_info, dts = dts)
+  
+  class(dts) <- c('dts', class(dts))
+  
+  dts
 }
+
+
+
+
 
 
 
@@ -111,21 +142,37 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R') {
 #' @examples
 dts_to_long <- function(dts) {
   
-  distance <- dts$event_info$distances
-  wh <- dts$event_info$wh
+  distance <- dts[['event_info']][['distances']]
+  wh <- dts[['event_info']][['wh']]
   
-  dts_long <- rbindlist(map(dts$dts, .f = function(x, ...) {
-    data.table(temperature = x$trace_data, 
-               datetime = x$trace_info$start,
+  dts_long <- rbindlist(purrr::map(dts[['dts']], .f = function(x, ...) {
+    data.table::data.table(temperature = x[['trace_data']], 
+               start       = x[['trace_time']][['start']],
                distance = distance)[wh]
   }, wh = wh))
   
   
-  meta <- rbindlist(map(dts$dts, function(x) {
-    x$trace_info
+  meta <- rbindlist(purrr::map(dts[['dts']], function(x) {
+    x[['trace_time']]
   }))
+  meta[, type := NA_character_]
   
-  return(list(trace_data = dts_long, trace_info = meta))
+  cable_dist <- data.table(distance = distance[wh],
+                     junction = FALSE,
+                     heated = FALSE,
+                     bath = FALSE,
+                     borehole = FALSE)
+  
+  setkey(meta, start)
+  setkey(dts_long, start, distance)
+  setkey(cable_dist, distance)
+  
+  dts <- list(trace_data = dts_long,
+              trace_time = meta, 
+              trace_distance = cable_dist)
+  class(dts) <- c('dts_long', class(dts))
+  
+  dts
 }
 
 
@@ -140,19 +187,19 @@ dts_to_long <- function(dts) {
 #' @examples
 dts_to_wide <- function(dts) {
   
-  wh <- dts$event_info$wh
-  distance <- dts$event_info$distances[wh]
+  wh <- dts[['event_info']][['wh']]
+  distance <- dts[['event_info']][['distances']][['wh']]
   
-  times <- c(0.0, as.numeric(map(dts$dts, function(x){
-    x$trace_info$start
+  times <- c(0.0, as.numeric(purrr::map(dts[['dts']], function(x){
+    x[['trace_time']][['start']]
   })))
   
-  probe_1 <- c(0.0, as.numeric(map(dts$dts, function(x){
-    x$trace_info$probe_1
+  probe_1 <- c(0.0, as.numeric(purrr::map(dts[['dts']], function(x){
+    x[['trace_time']][['probe_1']]
   })))
   
-  probe_2 <- c(0.0, as.numeric(map(dts$dts, function(x){
-    x$trace_info$probe_2
+  probe_2 <- c(0.0, as.numeric(purrr::map(dts[['dts']], function(x){
+    x[['trace_time']][['probe_2']]
   })))
   
   sec <- times - times[2]
@@ -162,7 +209,7 @@ dts_to_wide <- function(dts) {
   sec[1] <- 0.0
   hr[1]  <- 0.0
   
-  dts_wide <- t(do.call('rbind', map(dts$dts, function(x){
+  dts_wide <- t(do.call('rbind', purrr::map(dts[['dts']], function(x){
     x$trace_data
   }))[, wh])
   
@@ -170,7 +217,6 @@ dts_to_wide <- function(dts) {
   dts_wide <- rbind(times, sec, hr, probe_1, probe_2, dts_wide)
   
 }
-
 
 
 #' read_dts_xml
@@ -191,45 +237,7 @@ dts_to_matlab <- function(in_dir, out_name, n_cores = 4) {
                     out_name, 
                     compression = TRUE, 
                     version = 'MAT5')
-}
-
-#' get_distances
-#'
-#' @param file_path path to the file
-#'
-#' @return distances
-#' @export
-#'
-#' @examples
-get_distances <- function(file_path) {
   
-  r <- XML::xmlRoot(XML::xmlParse(file_path))
-  
-  # get data
-  text <- paste(XML::getChildrenStrings(r[['wellLog']][['logData']],
-                                        addNames = FALSE,
-                                        asVector = TRUE),
-                collapse = '\n')
-  
-  
-  text  <-   data.table::fread(input = text,
-                               blank.lines.skip = TRUE,
-                               select = 1,
-                               sep = ',',
-                               nThread = 1,
-                               strip.white = FALSE)[[1]]
-  
-  
-  # is cable double ended
-  double_ended <- as.integer(XML::getChildrenStrings(r[['wellLog']][['customData']][['isDoubleEnded']]))
-  
-  # is cable double ended
-  fibre_length <- as.numeric(XML::getChildrenStrings(r[['wellLog']][['customData']][['UserConfiguration']][['ChannelConfiguration']][['AcquisitionConfiguration']][['MeasurementLength']]))
-  
-  # subsets
-  wh <- which(text %between% c(0, fibre_length))
-  
-  return(list(distances = text, wh = wh, double_ended = double_ended, fibre_length = fibre_length))
 }
 
 
@@ -449,9 +457,19 @@ get_distances <- function(file_path) {
 #' }
 
 
+
 # xml2 version /  currently is much slower
   # y <- read_xml('/media/kennel/Data/tmp/DTS_Test/channel 1_20150917203350375.xml', options = 'NOBLANKS')
   # ns <- xml_ns(y)
   # wh <- xml_find_all(y, xpath = '//d1:data', ns)
   # txt <- xml_text(wh)
   # tmp2 <- fread(input = paste(txt, collapse = '\n'))
+
+
+# library(microbenchmark)
+# x <- "2020-02-02T20:00:30Z"
+# microbenchmark(
+#   a <- fastPOSIXct(x,  tz = 'UTC'),
+#   b <- as.POSIXct(x, format = "%Y-%m-%dT%H:%M:%OSZ", tz = 'UTC')
+# )
+

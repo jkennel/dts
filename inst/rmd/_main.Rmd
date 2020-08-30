@@ -1,0 +1,97 @@
+--- 
+title: "RBR Datasets"
+author: "G360"
+date: "`r Sys.Date()`"
+knit: "bookdown::render_book"
+documentclass: krantz
+bibliography: [book.bib, packages.bib]
+biblio-style: apalike
+link-citations: yes
+colorlinks: yes
+lot: yes
+lof: yes
+fontsize: 12pt
+monofont: "Source Code Pro"
+monofontoptions: "Scale=0.7"
+site: bookdown::bookdown_site
+description: "This report provides information into all the RBR files collected for the G360 research group."
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE)
+library(transducer)
+library(data.table)
+library(plotly)
+library(magrittr)
+library(DT)
+
+rbr_sum <- summarize_rbr(params$folder)
+
+rbr_sum <- rbr_start_end(rbr_sum)
+
+rbr_sum[, max := vapply(data, function(x) max(x$max), FUN.VALUE=numeric(1))]
+rbr_sum[, min := vapply(data, function(x) min(x$min), FUN.VALUE=numeric(1))]
+
+rbr_table <- rbr_sum[, list(serial,
+                            start_date = as.Date(start),
+                            end_date = as.Date(end),
+                            dt = dt,
+                            n, 
+                            type,
+                            units,
+                            min = round(min, 3),
+                            max = round(max, 3),
+                            model,
+                            ruskin_version,
+                            file_name)]
+
+
+```
+
+## `r params$folder`
+
+## File summary
+```{r }
+
+setkey(rbr_table, start, type, serial)
+datatable(rbr_table, rownames = FALSE)
+
+```
+
+
+
+## Plots
+```{r }
+
+
+n <- nrow(rbr_sum)
+
+p <- list()
+for (i in 1:n) {
+  
+  data <- rbr_sum$data[[i]]
+  p[[i]] <- plot_ly(data, x = ~datetime, y = ~median,
+                type = 'scatter', mode = 'lines', 
+                name = 'median') %>%
+    add_lines(x = ~datetime, y = ~max, name = 'max') %>%
+    add_lines(x = ~datetime, y = ~min, name = 'min')
+  
+  
+}
+subplot(p, nrows = n, shareX = TRUE)
+
+  
+```
+
+
+## Footer
+
+#### `r Sys.time()`
+
+```{r sessioninfo}
+sessionInfo()
+```
+
+<!--chapter:end:summary.Rmd-->
+

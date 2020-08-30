@@ -1,0 +1,847 @@
+--- 
+title: "DTS Processing"
+author: "G360"
+date: "`r Sys.Date()`"
+knit: "bookdown::render_book"
+documentclass: krantz
+bibliography: [book.bib, packages.bib]
+biblio-style: apalike
+link-citations: yes
+colorlinks: yes
+lot: yes
+lof: yes
+fontsize: 12pt
+monofont: "Source Code Pro"
+monofontoptions: "Scale=0.7"
+site: bookdown::bookdown_site
+description: "This report provides information about an A-DTS test."
+params:
+  dts_files: '/home/jonathankennel/Storage/data/dts/gdc_05_2015-11-02/2015-11-02 Active DTS Test GDC-05 7_5 W per m/'
+---
+
+```{r setup, include=FALSE}
+print(getwd())
+knitr::opts_chunk$set(echo = FALSE, comment = NA)
+
+library(data.table)
+library(ggplot2)
+library(dts)
+library(plotly)
+library(viridis)
+library(irlba)
+library(mclust)
+library(knitr)
+library(gganimate)
+library(transformr)
+library(bookdown)
+library(DT)
+library(htmlwidgets)
+library(knitr)
+library(widgetframe)
+library(svglite)
+library(gifski)
+
+
+a <- Sys.time()
+
+```
+
+# Introduction
+
+This script generates a summary report for A-DTS for a single borehole. The only input necessary is the path to the folder that contains XML files.
+
+File path: `r params$dts_files`
+
+```{r getdata}
+
+dts <- read_dts_xml(params$dts_files, n_cores = 14) %>%
+  dts_to_long()
+
+# dts <- read_dts_xml('/home/jonathankennel/Storage/data/dts/gdc_05_2015-11-02/2015-11-02 Active DTS Test GDC-05 7_5 W per m/', n_cores = pmax(1, detectCores()-1)) %>%
+#   dts_to_long()
+
+
+
+n_files  <- nrow(dts$trace_time)
+time     <- range(get_times(dts))
+distance <- range(unique(dts$trace_distance$distance))
+
+dts <- heating_time(dts)
+dts <- heating_distance(dts)
+dts <- find_water_bath(dts)
+dts <- bath_calibration(dts)
+
+
+half <- half_data(dts, type='head')
+
+rm(dts)
+gc()
+
+half <- add_heating_cooling(half)
+half <- heated_groups(half, n_comp = 5, n_clust = 6, n_buffer = 1000)
+
+half$trace_distance[, classification := process_classification(classification, k = 31)]
+half$trace_distance[, classification := process_terminal(classification, k = 15)]
+
+half <- add_classification(half)
+half_60 <- average_time(half, n = 120)
+
+
+distance_ranges <- function(x, by = 'bath') {
+  get_distance_table(x)[, list(min_distance = min(distance),
+                      max_distance = max(distance)), by = list(type = get(by))]
+}
+
+
+time_ranges <- function(x, by = 'type') {
+  get_time_table(x)[, list(min_time = min(start),
+                      max_time = max(start)), by = list(type = get(by))]
+}
+
+
+```
+
+
+- Total number of files processed: `r n_files`
+- Distance Range: `r distance[1]` to `r distance[2]`
+- Time Range: `r time[1]` to `r time[2]`
+
+
+```{r oupputdata, eval = FALSE}
+
+write_dts(dts)
+
+```
+
+
+
+# Reference temperatures
+
+## Raw
+
+
+```{r reftemperature, warning=FALSE}
+
+tr_time <- time_ranges(half, by = 'type')
+tr_time[, ymin := -Inf]
+tr_time[, ymax :=  Inf]
+
+meta <- half$trace_time
+meta <- melt(meta[, list(start, probe_1, probe_2, ref_temperature, bath_temp_dts)],
+             id.vars = 'start')
+meta[, value_adj := value - frollmean(value, 10), by = variable]
+
+p <- ggplot() +
+  geom_rect(data = tr_time, aes(xmin = min_time,
+                                xmax = max_time,
+                                ymin = ymin,
+                                ymax = ymax,
+                                fill  = type),
+            color = 'transparent') +
+  scale_fill_manual(values = c('#fbc93d10', '#6cc0e510', '#fb4f4f10'),
+                    breaks = c('ambient', 'cooling', 'heating')) +
+  geom_line(data = meta, aes(x = start, y = value)) +
+  scale_x_datetime(expand = c(0,0)) +
+  facet_wrap(variable~., ncol = 1, scales = 'free_y') +
+  ylab('Temperature (°C)') +
+  theme_bw() +
+  theme(legend.position = 'top',
+        axis.title.x = element_blank())
+p
+
+```
+
+
+## Detrended
+
+```{r reftemperaturedemeaned, warning=FALSE}
+
+p <- ggplot() +
+  geom_rect(data = tr_time, aes(xmin = min_time,
+                           xmax = max_time,
+                           ymin = ymin,
+                           ymax = ymax,
+                           fill  = type),
+            color = 'transparent') +
+  scale_fill_manual(values = c('#fbc93d10', '#6cc0e510', '#fb4f4f10'),
+                     breaks = c('ambient', 'cooling', 'heating')) +
+  geom_line(data = meta, aes(x = start, y = value_adj)) +
+  scale_x_datetime(expand = c(0,0))+
+  facet_wrap(variable~., ncol = 1) +
+  ylab('Temperature (°C)') +
+  theme_bw() +
+  theme(legend.position = 'top',
+        axis.title.x = element_blank())
+p
+
+
+
+```
+
+
+## Adjustment
+
+
+```{r reftemperatureadjust, warning=FALSE}
+
+meta <- get_time_table(half)
+meta <- melt(meta[, list(start,
+                         probe_mean = calib_temperature,
+                         dts_bath_mean = bath_temp_dts,
+                         calib_adj = -calib_adj,
+                         dts_adjusted = bath_temp_dts - calib_adj)],
+             id.vars = 'start')
+
+mean_t <- meta[, list(t_mean = paste('mean: ', round(mean(value, na.rm = TRUE),2), '(°C)'),
+                      start = min(start)), by = variable]
+
+
+
+meta[, value_adj := value-mean(value, na.rm = TRUE), by = variable]
+p <- ggplot() +
+  geom_rect(data = tr_time, aes(xmin = min_time,
+                           xmax = max_time,
+                           ymin = ymin,
+                           ymax = ymax,
+                           fill  = type),
+            color = 'transparent') +
+  geom_label(data = mean_t, aes(x = start, y = Inf, label = t_mean),
+                    color = viridis(1), size = 4, vjust = "inward", hjust = "inward",
+                    label.padding = unit(0.1, units = 'lines')) +
+  scale_fill_manual(values = c('#fbc93d10', '#6cc0e510', '#fb4f4f10'),
+                     breaks = c('ambient', 'cooling', 'heating')) +
+  geom_line(data = meta, aes(x = start, y = value_adj)) +
+  scale_x_datetime(expand = c(0, 0))+
+  facet_wrap(variable~., ncol = 1) +
+  ylab('Temperature (°C)') +
+  theme_bw() +
+  theme(legend.position = 'top',
+        axis.title.x = element_blank())
+p
+```
+
+
+**Smoothing the probe signal prior to adjustment may slightly decrease noise as the probes have more noise than expected.**
+
+dts_adjusted is the same as the probe_mean with this method.
+
+
+Water bath mean:
+
+$\overline{T}_{t}^{bath} = \frac{\Sigma T_{t}^{bath}}{n}$
+
+Probe mean:
+
+$\overline{T}_{t}^{probes} = \frac{T_{t}^{probe 1} + T_{t}^{probe 2}}{2}$
+
+Adjustment:
+
+$\overline{T}_{t}^{adj} =  \overline{T}_{t}^{probes} - \overline{T}_{t}^{bath}$
+
+
+# Key locations and times (autopicks)
+
+## Water bath
+
+```{r waterbathtable}
+
+sub_trace <- sample_times(half, n_traces = 3)
+tr <- distance_ranges(half, by = 'bath')
+tr[, ymin := -Inf]
+tr[, ymax :=  Inf]
+
+```
+
+Distances `r tr[type== TRUE]$min_distance` to `r tr[type== TRUE]$max_distance` are likely in a water bath.
+
+```{r waterbath}
+
+
+
+
+p <- ggplot() +
+  geom_rect(data = tr, aes(xmin = min_distance,
+                           xmax = max_distance,
+                           ymin = ymin,
+                           ymax = ymax,
+                           fill  = type),
+            color = 'transparent') +
+  geom_line(data = sub_trace, aes(x = distance, y = temperature)) +
+  coord_flip() +
+  scale_x_reverse(expand = c(0,0)) +
+  scale_fill_manual(values = c('#6cc0e510', '#fb4f4f10'),
+                     breaks = c(FALSE, TRUE)) +
+  facet_wrap(as.character(start)~., ncol = 5) +
+  theme_bw() +
+  xlab('Distance (m)') +
+  ylab('Temperature (°C)') +
+  theme(legend.position = 'top',
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0.1, "lines"),
+        axis.text = element_text(size = 10),
+        strip.text = element_text(size = 10,
+                                  margin = margin(0,0,0,0, "cm")))
+
+p
+
+
+```
+
+```{r waterbathmatrix}
+
+rng <- range(half_60$trace_distance[bath == TRUE]$distance)
+sub_60 <- subset_distance(half_60, rng[1], rng[2])
+m <- to_matrix(sub_60)
+
+p <- plot_ly(z = m,
+             x = as.POSIXct(as.numeric(colnames(m)), origin = '1970-01-01', tz = 'UTC'),
+             y = rownames(m),
+             colors = viridis(100),
+             type = "heatmap",
+             height = 200) %>%
+    layout(yaxis = list(autorange="reversed"))
+p
+
+```
+
+## Ambient Heating Cooling Times
+
+```{r ambientheatingcoolingtable}
+kable(tr_time[, list(type, min_time, max_time)])
+```
+
+```{r ambientheatingcooling, dev = 'png'}
+
+
+sub_trace <- sample_distance(half, n_traces = 20)
+
+p <- ggplot() +
+  geom_rect(data = tr_time, aes(xmin = min_time,
+                           xmax = max_time,
+                           ymin = ymin,
+                           ymax = ymax,
+                           fill  = type),
+            color = 'transparent') +
+  geom_line(data = sub_trace, aes(x = start, y = temperature)) +
+  scale_x_datetime(expand = c(0,0)) +
+  scale_fill_manual(values = c('#fbc93d10', '#6cc0e510', '#fb4f4f10'),
+                     breaks = c('ambient', 'cooling', 'heating')) +
+  facet_wrap(distance~., scales = 'free_y', ncol = 5) +
+  theme_bw() +
+  xlab('') +
+  ylab('Temperature (°C)') +
+  theme(legend.position = 'top',
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0.1, "lines"),
+        axis.text = element_text(size = 6),
+        axis.title.x = element_blank(),
+        strip.text = element_text(size = 4,
+                                  margin = margin(0,0,0,0, "cm")))
+
+p
+
+```
+
+
+<!-- ```{r bottomtraces} -->
+
+<!-- time_ranges <- function(x) { -->
+<!--   x$trace_time[, list(min_time = min(start), -->
+<!--                       max_time = max(start)), by = type] -->
+<!-- } -->
+
+<!-- tr <- time_ranges(dts) -->
+<!-- tr[, ymin := -Inf] -->
+<!-- tr[, ymax :=  Inf] -->
+
+
+<!-- n <- nrow(dts$trace_distance)/2 -->
+<!-- med_dist <- dts$trace_distance$distance[(n-4):(n+4)] -->
+<!-- sub_trace <- subset_distance(dts, min(med_dist), max(med_dist)) -->
+<!-- sub_trace <- sub_trace$trace_data -->
+<!-- p <- ggplot() +  -->
+<!--   geom_rect(data = tr, aes(xmin = min_time, -->
+<!--                            xmax = max_time, -->
+<!--                            ymin = ymin, -->
+<!--                            ymax = ymax, -->
+<!--                            fill  = type), -->
+<!--             color = 'transparent') + -->
+<!--   geom_line(data = sub_trace, aes(x = start, y = temperature)) +  -->
+<!--   scale_x_datetime(expand = c(0,0)) + -->
+<!--   scale_fill_manual(values = c('#fbc93d10', '#6cc0e510', '#fb4f4f10'), -->
+<!--                      breaks = c('ambient', 'cooling', 'heating')) +  -->
+<!--   facet_wrap(distance~.,  ncol = 3) +  -->
+<!--   theme_bw() +  -->
+<!--   xlab('') +  -->
+<!--   ylab('Temperature (°C)') +  -->
+<!--   theme(panel.grid.major = element_blank(), -->
+<!--         panel.grid.minor = element_blank(), -->
+<!--         panel.spacing = unit(0.1, "lines"), -->
+<!--         axis.text = element_text(size = 6), -->
+<!--         axis.title.x = element_blank(), -->
+<!--         strip.text = element_text(size = 6,  -->
+<!--                                   margin = margin(0,0,0,0, "cm"))) -->
+
+<!-- p -->
+
+
+
+
+<!-- time_ranges <- function(x) { -->
+<!--   x$trace_time[, list(min_time = min(start), -->
+<!--                       max_time = max(start)), by = type] -->
+<!-- } -->
+
+<!-- tr <- time_ranges(dts) -->
+<!-- tr[, ymin := -Inf] -->
+<!-- tr[, ymax :=  Inf] -->
+
+
+<!-- n <- nrow(dts$trace_distance) -->
+<!-- med_dist <- dts$trace_distance$distance[c(1:6)+200] -->
+<!-- sub_trace <- subset_distance(dts, min(med_dist), max(med_dist)) -->
+<!-- sub_trace <- sub_trace$trace_data -->
+
+<!-- med_dist <- dts$trace_distance$distance[(n):(n-5)-200] -->
+<!-- sub_trace2 <- subset_distance(dts, min(med_dist), max(med_dist)) -->
+<!-- sub_trace2 <- sub_trace2$trace_data -->
+
+<!-- sub_trace <- rbind(sub_trace, sub_trace2) -->
+<!-- p <- ggplot() +  -->
+<!--   geom_rect(data = tr, aes(xmin = min_time, -->
+<!--                            xmax = max_time, -->
+<!--                            ymin = ymin, -->
+<!--                            ymax = ymax, -->
+<!--                            fill  = type), -->
+<!--             color = 'transparent') + -->
+<!--   geom_line(data = sub_trace, aes(x = start, y = temperature)) +  -->
+<!--   scale_x_datetime(expand = c(0,0)) + -->
+<!--   scale_fill_manual(values = c('#fbc93d10', '#6cc0e510', '#fb4f4f10'), -->
+<!--                      breaks = c('ambient', 'cooling', 'heating')) +  -->
+<!--   facet_wrap(distance~.,  ncol = 3) +  -->
+<!--   theme_bw() +  -->
+<!--   xlab('') +  -->
+<!--   ylab('Temperature (°C)') +  -->
+<!--   theme(panel.grid.major = element_blank(), -->
+<!--         panel.grid.minor = element_blank(), -->
+<!--         panel.spacing = unit(0.1, "lines"), -->
+<!--         axis.text = element_text(size = 6), -->
+<!--         axis.title.x = element_blank(), -->
+<!--         strip.text = element_text(size = 6,  -->
+<!--                                   margin = margin(0,0,0,0, "cm"))) -->
+
+<!-- p -->
+
+
+<!-- aa <- sub_trace[, list(mean_t = max(temperature)), by = distance] -->
+<!-- plot(mean_t~distance, aa, type = 'o', pch = 20) -->
+<!-- abline(h = seq(8, 11, 0.1), col = 'grey', lty = 2) -->
+
+<!-- plot(aa[c(12,1,11,2,10,3,9,4,8,5,7,6)]$mean_t, type = 'o', pch = 20, col = c(1,2)) -->
+
+<!-- tmp <- aa[c(12,1,11,2,10,3,9,4,8,5,7,6)]$mean_t -->
+<!-- a <- tmp[3] - tmp[1] -->
+<!-- b <- tmp[2] - tmp[1] -->
+<!-- b/a -->
+<!-- a <- tmp[5] - tmp[3] -->
+<!-- b <- tmp[4] - tmp[3] -->
+<!-- b/a -->
+<!-- a <- tmp[7] - tmp[5] -->
+<!-- b <- tmp[6] - tmp[5] -->
+<!-- b/a -->
+<!-- a <- tmp[9] - tmp[7] -->
+<!-- b <- tmp[8] - tmp[7] -->
+<!-- b/a -->
+<!-- a <- tmp[11] - tmp[9] -->
+<!-- b <- tmp[10] - tmp[9] -->
+<!-- b/a -->
+
+<!-- x <- c(1, 1.65, 2, 2.65, 3, 3.65, 4, 4.65, 5, 5.65, 6, 6.65) -->
+<!-- plot(x,aa[c(12,1,11,2,10,3,9,4,8,5,7,6)]$mean_t, type = 'o', pch = 20, col = c(1,2)) -->
+
+
+<!-- ``` -->
+
+
+## Ambient Heating Distances
+
+```{r ambientheatingcoolingdistancestable}
+tr <- distance_ranges(half, by = 'heated')
+tr[, ymin := -Inf]
+tr[, ymax :=  Inf]
+
+sub_trace <- sample_times(half, n_traces = 10)
+
+kable(tr[, list(type = ifelse(type, 'Heated', 'Not heated'), min_distance, max_distance)])
+
+```
+
+```{r ambientheatingcoolingdistances}
+
+
+
+p <- ggplot() +
+  geom_rect(data = tr, aes(xmin = min_distance,
+                           xmax = max_distance,
+                           ymin = ymin,
+                           ymax = ymax,
+                           fill  = type),
+            color = 'transparent') +
+  geom_line(data = sub_trace, aes(x = distance, y = temperature)) +
+  coord_flip() +
+  scale_x_reverse(expand = c(0,0)) +
+  scale_fill_manual(values = c('#6cc0e510', '#fb4f4f10'),
+                     breaks = c(FALSE, TRUE)) +
+  facet_wrap(as.character(start)~., ncol = 5) +
+  theme_bw() +
+  xlab('Distance (m)') +
+  ylab('Temperature (°C)') +
+  theme(legend.position = 'top',
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0.1, "lines"),
+        axis.text = element_text(size = 10),
+        strip.text = element_text(size = 6,
+                                  margin = margin(0,0,0,0, "cm")))
+
+p
+
+```
+
+
+
+
+
+
+# Classification
+
+```{r other}
+
+sub_trace <- sample_times(half_60, n_traces = 5)
+
+p <- ggplot() +
+  geom_point(data = na.omit(sub_trace),
+             aes(x = distance,
+                 y = temperature,
+                 color = as.factor(classification)),
+             size = 0.8) +
+  coord_flip() +
+  scale_x_reverse(expand = c(0,0)) +
+  facet_wrap(as.character(start)~., ncol = 5) +
+  scale_color_brewer(type = 'qual', palette = 'Dark2', name = 'Class') +
+  theme_bw() +
+  xlab('Distance (m)') +
+  ylab('Temperature (°C)') +
+  theme(legend.position = 'top',
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.spacing = unit(0.1, "lines"),
+        axis.text = element_text(size = 10),
+        strip.text = element_text(size = 10,
+                                  margin = margin(0,0,0,0, "cm")))
+
+p
+
+
+```
+
+
+```{r classificationmatrix}
+
+rng <- range(half_60$trace_distance[heated == TRUE]$distance)
+sub_60 <- subset_distance(half_60, rng[1], rng[2])
+
+subs <- na.omit(unique(sub_60$trace_distance$classification))
+
+am <- range(half_60$trace_time[type=='ambient']$start)
+he <- range(half_60$trace_time[type=='heating']$start)
+co <- range(half_60$trace_time[type=='cooling']$start)
+
+
+plot_group <- function(x, group = 6, n_trim = 10) {
+  rng <- range(x$trace_distance[classification == group]$distance)
+  d <- subset_distance(x, rng[1], rng[2])
+  m <- to_matrix(d)
+  m <- m[, -c(1:n_trim, ncol(m):(ncol(m)-n_trim+1))]
+  x_lab <- as.POSIXct(as.numeric(colnames(m)),
+                      origin = '1970-01-01', tz = 'UTC')
+  y_lab <- rownames(m)
+  plot_ly(z = m,
+          x = x_lab,
+          y = y_lab,
+          colors = viridis(100),
+          type = "heatmap") %>%
+    layout(yaxis = list(autorange="reversed"))
+}
+
+
+```
+
+
+```{r classificationmatrixtable}
+
+d <- half_60$trace_distance
+d <- d[, list(min_distance = min(distance),
+         max_distance = max(distance)), by = classification]
+kable(d[classification %in% c(3:6, NA)])
+
+```
+
+
+## All time
+
+```{r matall}
+
+subplot(plot_group(half_60, group = 3)%>%
+  colorbar(title = "Temperature", x = 1, y = 1),
+        plot_group(half_60, group = 4)%>%
+  colorbar(title = "Temperature", x = 1, y = 0.75),
+        plot_group(half_60, group = 5)%>%
+  colorbar(title = "Temperature", x = 1, y = 0.5),
+        plot_group(half_60, group = 6)%>%
+  colorbar(title = "Temperature", x = 1, y = 0.25),
+        nrows = 4, shareX = TRUE)
+
+```
+
+## Ambient
+
+```{r am}
+
+subplot(plot_group(subset_time(half_60, am[1], am[2]), group = 3)%>%
+  colorbar(title = "Temperature", x = 1, y = 1),
+        plot_group(subset_time(half_60, am[1], am[2]), group = 4)%>%
+  colorbar(title = "Temperature", x = 1, y = 0.75),
+        plot_group(subset_time(half_60, am[1], am[2]), group = 5)%>%
+  colorbar(title = "Temperature", x = 1, y = 0.5),
+        plot_group(subset_time(half_60, am[1], am[2]), group = 6)%>%
+  colorbar(title = "Temperature", x = 1, y = 0.25),
+        nrows = 4, shareX = TRUE)
+
+```
+
+## Heating
+
+
+```{r he}
+
+subplot(plot_group(subset_time(half_60, he[1], he[2]), group = 3)%>%
+  colorbar(title = "Temperature", x = 1, y = 1),
+        plot_group(subset_time(half_60, he[1], he[2]), group = 4)%>%
+  colorbar(title = "Temperature", x = 1, y = 0.75),
+        plot_group(subset_time(half_60, he[1], he[2]), group = 5)%>%
+  colorbar(title = "Temperature", x = 1, y = 0.5),
+        plot_group(subset_time(half_60, he[1], he[2]), group = 6)%>%
+  colorbar(title = "Temperature", x = 1, y = 0.25),
+        nrows = 4, shareX = TRUE)
+```
+
+
+## Cooling
+
+```{r co}
+
+subplot(plot_group(subset_time(half_60, co[1], co[2]), group = 3)%>%
+  colorbar(title = "Temperature", x = 1, y = 1),
+        plot_group(subset_time(half_60, co[1], co[2]), group = 4)%>%
+  colorbar(title = "Temperature", x = 1, y = 0.75),
+        plot_group(subset_time(half_60, co[1], co[2]), group = 5)%>%
+  colorbar(title = "Temperature", x = 1, y = 0.5),
+        plot_group(subset_time(half_60, co[1], co[2]), group = 6)%>%
+  colorbar(title = "Temperature", x = 1, y = 0.25),
+        nrows = 4, shareX = TRUE)
+
+```
+
+# Images
+
+## Saturated ambient
+
+```{r amtmp}
+plot_group(subset_time(half_60, am[1], am[2]), group = 6)%>%
+  colorbar(title = "Temperature")
+
+```
+
+## Saturated heating
+
+```{r hetmp}
+plot_group(subset_time(half_60, he[1], he[2]), group = 6)%>%
+  colorbar(title = "Temperature")
+
+```
+
+## Saturated cooling
+
+```{r cotmp}
+
+plot_group(subset_time(half_60, co[1], co[2]), group = 6)%>%
+  colorbar(title = "Temperature")
+
+
+```
+
+# Slope (Linear fit to log-linear data)
+
+## Trim late times
+
+The length of the series goes from 30 seconds to the facet value.
+
+```{r }
+
+
+et <- c(900, 1800, 3600, 7200, 14400)
+ff_list <- list()
+fb_list <- list()
+for (i in seq_along(et)) {
+  ff <- fit_heating_cooling(half, start_time = 30, end_time = et[i])
+  rng <- range(half$trace_distance[classification %in% c(6)]$distance)
+  ff <- subset_distance(ff, rng[1], rng[2])
+  ff[, start_time := 30]
+  ff[, end_time := et[i]]
+  ff[, method := 'forward']
+  ff_list[[i]] <- copy(ff)
+}
+
+et <- 14400 - c(60, 300, 900, 1800, 3600)
+
+for (i in seq_along(et)) {
+
+  fb <- fit_heating_cooling(half, start_time = 14400-et[i], end_time = 14400)
+  rng <- range(half$trace_distance[classification %in% c(6)]$distance)
+  fb <- subset_distance(fb, rng[1], rng[2])
+  fb[, start_time := 14400-et[i]]
+  fb[, end_time := 14400]
+  fb[, method := 'backward']
+  fb_list[[i]] <- copy(fb)
+
+}
+
+fits <- rbindlist(list(rbindlist(fb_list), rbindlist(ff_list)))
+
+fits[, thermal_conductivity := thermal_conductivity(abs(slope), 7.5)]
+p <- ggplot(fits[method == 'forward'], aes(y = abs(slope), x = distance, color = type)) +
+  geom_line() +
+  scale_x_reverse() +
+  scale_color_manual(values = c('#4682B4', '#b44682')) +
+  coord_flip() +
+  facet_wrap(end_time~., ncol = 5) +
+  theme_bw()
+
+p
+
+```
+
+
+## Trim early times
+
+The length of the series goes from the facet value to 14400 seconds.
+
+
+```{r }
+
+p <- ggplot(fits[method == 'backward'], aes(y = abs(slope), x = distance, color = type)) +
+  geom_line() +
+  scale_x_reverse() +
+  scale_color_manual(values = c('#4682B4', '#b44682')) +
+  coord_flip() +
+  facet_wrap(start_time~., ncol = 5) +
+  theme_bw()
+
+p
+
+```
+
+
+
+# Thermal Conductivity (distributed lag deconvolution)
+
+Questions: What causes the diminished apparent thermal conductivity with time:
+
+- Transfer from above/below in formation?
+
+- Heat transfer in liner water?
+
+- How can one choose the appropriate slope for quantitative results?
+
+## Thermal conductivity at elapsed times
+
+```{r message = FALSE, warning = FALSE}
+n_sub <- 5
+half_05 <- average_time(half, n_sub)
+fits <- fit_convolve(half_05, n_knots = 6, cool_mult = 2)
+
+y <- seq(n_sub, nrow(fits)*n_sub, by = n_sub)
+
+log_deriv <- function(x, y) {
+  x / (log(data.table::shift(y, n = 1, type = 'lead')) - log(data.table::shift(y, n = 1, type = 'lag')))
+}
+ld <- apply(fits, 2, function(x) log_deriv(x, y))
+ld[is.na(ld)] <- 0
+fits <- apply(ld, 2, function(x) aquifer::fftw_convolve(x, waterlevel::window_rectangular(301)))
+fits <- cbind(get_distance_table(half_05)[, list(distance, classification)], t(fits))
+
+fits <- fits[classification == 6]
+fits[, classification := NULL]
+
+fits <- melt(fits, id.vars = 'distance')
+fits[, variable := as.numeric(gsub('V', '', variable)) * 5]
+fits[, thermal_conductivity := thermal_conductivity(value, 7.5)]
+
+p <- ggplot(fits[variable %in% seq(1800, 3600*8, 300)],
+            aes(y = thermal_conductivity, x = distance)) +
+  geom_line() +
+  geom_hline(yintercept = 4.6, color = 'red') +
+  scale_x_reverse() +
+  scale_y_continuous(limits = c(0, 100)) +
+  scale_color_viridis_c() +
+  coord_flip() +
+  theme_bw() +
+  transition_states(variable) +
+  ease_aes('cubic-in-out') + 
+  labs(title = "Slope at elapsed time: {round(frame * 300 + 1500, 0)}")
+
+options(gganimate.device = 'png')
+options(gganimate.nframes = 91)
+options(gganimate.fps = 10)
+options(gganimate.renderer = ffmpeg_renderer())
+options(gganimate.dev_args = list(width = 600, height= 500))
+animate(p, device = 'png')
+
+```
+
+
+```{r, dev = 'png'}
+
+p <- ggplot(fits[variable %in% seq(1800, 3600*8, 20)], aes(y = thermal_conductivity, x = variable, color = distance, group = distance)) +
+  geom_line() +
+  scale_color_viridis_c(alpha = 0.5) +
+  annotation_logticks(sides = 'bt')+
+  scale_x_log10(expand = c(0,0)) +
+  xlab('Elapsed Time (Seconds)') +
+  ylab('Thermal Conductivity (W/mK)') +
+  theme_bw()
+p
+```
+
+# Footer
+
+Creation Date: `r Sys.time()`
+
+```{r}
+
+sessionInfo()
+
+```
+
+
+```{r}
+b <- Sys.time()
+
+cat(paste('Processing time: ', round(as.numeric(b)-as.numeric(a), 0), 'seconds'))
+
+```
+
+

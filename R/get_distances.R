@@ -28,13 +28,20 @@ get_distances <- function(file_path) {
   # is cable double ended
   double_ended <- as.integer(XML::getChildrenStrings(r[['wellLog']][['customData']][['isDoubleEnded']]))
   
+  # step increment
+  step_increment <- as.numeric(XML::getChildrenStrings(r[['wellLog']][['blockInfo']][['stepIncrement']]))
+  # 
   # is cable double ended
   fibre_length <- as.numeric(XML::getChildrenStrings(r[['wellLog']][['customData']][['UserConfiguration']][['ChannelConfiguration']][['AcquisitionConfiguration']][['MeasurementLength']]))
   
   # subsets
   wh <- which(text %between% c(0, fibre_length))
   
-  return(list(distances = text, wh = wh, double_ended = double_ended, fibre_length = fibre_length))
+  return(list(distances = text, 
+              wh = wh,
+              double_ended = double_ended, 
+              fibre_length = fibre_length,
+              step_increment = step_increment))
 }
 
 

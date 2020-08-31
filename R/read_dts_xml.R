@@ -49,6 +49,7 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R') {
   fn <- list.files(in_dir, full.names = TRUE, pattern = "\\.xml$")
   
   event_info <- get_distances(fn[1])
+  n <- length(event_info$distances)
   
   cl <- makePSOCKcluster(n_cores)
   
@@ -62,7 +63,7 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R') {
     start <- fasttime::fastPOSIXct(XML::getChildrenStrings(r[['wellLog']][['minDateTimeIndex']]), tz = 'UTC')
     end   <- fasttime::fastPOSIXct(XML::getChildrenStrings(r[['wellLog']][['maxDateTimeIndex']]), tz = 'UTC')
     mid   <- as.POSIXct(mean(as.numeric(c(start, end))), origin = '1970-01-01', tz = 'UTC')
-    dt    <- as.numeric(end)-as.numeric(start)
+    dt    <- as.numeric(end) - as.numeric(start)
     
     # convert to matlab datetime
     if (date_format == 'matlab') {
@@ -88,17 +89,20 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R') {
     
     
     # Get data
-    text <- paste(XML::getChildrenStrings(r[['wellLog']][['logData']], 
+    text <- paste0(XML::getChildrenStrings(r[['wellLog']][['logData']],
                                           addNames = FALSE,
                                           asVector = TRUE),
                   collapse = '\n')
-    
-    text <- data.table::fread(input = text, 
-                              blank.lines.skip = TRUE, 
-                              select = select, 
-                              sep = ',', 
-                              nThread = 1, 
+    text <- data.table::fread(input = text,
+                              blank.lines.skip = TRUE,
+                              select = select,
+                              colClasses = rep('numeric', 6),
+                              sep = ',',
+                              nThread = 1,
                               strip.white = FALSE)[[1]]
+
+
+    
     
     
     # get metadata

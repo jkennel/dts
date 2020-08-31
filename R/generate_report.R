@@ -36,7 +36,12 @@ generate_report.character <- function(files_dir,
   file.copy(from = tmp_dir,
             to = output_dir,
             recursive = TRUE,
+            copy.mode = FALSE,
             copy.date = TRUE)
+  
+  
+  file.rename(file.path(output_dir, basename(tmp_dir)), 
+              paste0(output_dir, '/dts_', format(Sys.time(), format = '%Y%m%d%H%M%S')))
   
   setwd(curwd)
 }

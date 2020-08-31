@@ -345,126 +345,6 @@ p
 ```
 
 
-<!-- ```{r bottomtraces} -->
-
-<!-- time_ranges <- function(x) { -->
-<!--   x$trace_time[, list(min_time = min(start), -->
-<!--                       max_time = max(start)), by = type] -->
-<!-- } -->
-
-<!-- tr <- time_ranges(dts) -->
-<!-- tr[, ymin := -Inf] -->
-<!-- tr[, ymax :=  Inf] -->
-
-
-<!-- n <- nrow(dts$trace_distance)/2 -->
-<!-- med_dist <- dts$trace_distance$distance[(n-4):(n+4)] -->
-<!-- sub_trace <- subset_distance(dts, min(med_dist), max(med_dist)) -->
-<!-- sub_trace <- sub_trace$trace_data -->
-<!-- p <- ggplot() +  -->
-<!--   geom_rect(data = tr, aes(xmin = min_time, -->
-<!--                            xmax = max_time, -->
-<!--                            ymin = ymin, -->
-<!--                            ymax = ymax, -->
-<!--                            fill  = type), -->
-<!--             color = 'transparent') + -->
-<!--   geom_line(data = sub_trace, aes(x = start, y = temperature)) +  -->
-<!--   scale_x_datetime(expand = c(0,0)) + -->
-<!--   scale_fill_manual(values = c('#fbc93d10', '#6cc0e510', '#fb4f4f10'), -->
-<!--                      breaks = c('ambient', 'cooling', 'heating')) +  -->
-<!--   facet_wrap(distance~.,  ncol = 3) +  -->
-<!--   theme_bw() +  -->
-<!--   xlab('') +  -->
-<!--   ylab('Temperature (°C)') +  -->
-<!--   theme(panel.grid.major = element_blank(), -->
-<!--         panel.grid.minor = element_blank(), -->
-<!--         panel.spacing = unit(0.1, "lines"), -->
-<!--         axis.text = element_text(size = 6), -->
-<!--         axis.title.x = element_blank(), -->
-<!--         strip.text = element_text(size = 6,  -->
-<!--                                   margin = margin(0,0,0,0, "cm"))) -->
-
-<!-- p -->
-
-
-
-
-<!-- time_ranges <- function(x) { -->
-<!--   x$trace_time[, list(min_time = min(start), -->
-<!--                       max_time = max(start)), by = type] -->
-<!-- } -->
-
-<!-- tr <- time_ranges(dts) -->
-<!-- tr[, ymin := -Inf] -->
-<!-- tr[, ymax :=  Inf] -->
-
-
-<!-- n <- nrow(dts$trace_distance) -->
-<!-- med_dist <- dts$trace_distance$distance[c(1:6)+200] -->
-<!-- sub_trace <- subset_distance(dts, min(med_dist), max(med_dist)) -->
-<!-- sub_trace <- sub_trace$trace_data -->
-
-<!-- med_dist <- dts$trace_distance$distance[(n):(n-5)-200] -->
-<!-- sub_trace2 <- subset_distance(dts, min(med_dist), max(med_dist)) -->
-<!-- sub_trace2 <- sub_trace2$trace_data -->
-
-<!-- sub_trace <- rbind(sub_trace, sub_trace2) -->
-<!-- p <- ggplot() +  -->
-<!--   geom_rect(data = tr, aes(xmin = min_time, -->
-<!--                            xmax = max_time, -->
-<!--                            ymin = ymin, -->
-<!--                            ymax = ymax, -->
-<!--                            fill  = type), -->
-<!--             color = 'transparent') + -->
-<!--   geom_line(data = sub_trace, aes(x = start, y = temperature)) +  -->
-<!--   scale_x_datetime(expand = c(0,0)) + -->
-<!--   scale_fill_manual(values = c('#fbc93d10', '#6cc0e510', '#fb4f4f10'), -->
-<!--                      breaks = c('ambient', 'cooling', 'heating')) +  -->
-<!--   facet_wrap(distance~.,  ncol = 3) +  -->
-<!--   theme_bw() +  -->
-<!--   xlab('') +  -->
-<!--   ylab('Temperature (°C)') +  -->
-<!--   theme(panel.grid.major = element_blank(), -->
-<!--         panel.grid.minor = element_blank(), -->
-<!--         panel.spacing = unit(0.1, "lines"), -->
-<!--         axis.text = element_text(size = 6), -->
-<!--         axis.title.x = element_blank(), -->
-<!--         strip.text = element_text(size = 6,  -->
-<!--                                   margin = margin(0,0,0,0, "cm"))) -->
-
-<!-- p -->
-
-
-<!-- aa <- sub_trace[, list(mean_t = max(temperature)), by = distance] -->
-<!-- plot(mean_t~distance, aa, type = 'o', pch = 20) -->
-<!-- abline(h = seq(8, 11, 0.1), col = 'grey', lty = 2) -->
-
-<!-- plot(aa[c(12,1,11,2,10,3,9,4,8,5,7,6)]$mean_t, type = 'o', pch = 20, col = c(1,2)) -->
-
-<!-- tmp <- aa[c(12,1,11,2,10,3,9,4,8,5,7,6)]$mean_t -->
-<!-- a <- tmp[3] - tmp[1] -->
-<!-- b <- tmp[2] - tmp[1] -->
-<!-- b/a -->
-<!-- a <- tmp[5] - tmp[3] -->
-<!-- b <- tmp[4] - tmp[3] -->
-<!-- b/a -->
-<!-- a <- tmp[7] - tmp[5] -->
-<!-- b <- tmp[6] - tmp[5] -->
-<!-- b/a -->
-<!-- a <- tmp[9] - tmp[7] -->
-<!-- b <- tmp[8] - tmp[7] -->
-<!-- b/a -->
-<!-- a <- tmp[11] - tmp[9] -->
-<!-- b <- tmp[10] - tmp[9] -->
-<!-- b/a -->
-
-<!-- x <- c(1, 1.65, 2, 2.65, 3, 3.65, 4, 4.65, 5, 5.65, 6, 6.65) -->
-<!-- plot(x,aa[c(12,1,11,2,10,3,9,4,8,5,7,6)]$mean_t, type = 'o', pch = 20, col = c(1,2)) -->
-
-
-<!-- ``` -->
-
-
 ## Ambient Heating Distances
 
 ```{r ambientheatingcoolingdistancestable}
@@ -477,6 +357,7 @@ sub_trace <- sample_times(half, n_traces = 10)
 kable(tr[, list(type = ifelse(type, 'Heated', 'Not heated'), min_distance, max_distance)])
 
 ```
+
 
 ```{r ambientheatingcoolingdistances}
 
@@ -560,15 +441,20 @@ he <- range(half_60$trace_time[type=='heating']$start)
 co <- range(half_60$trace_time[type=='cooling']$start)
 
 
-plot_group <- function(x, group = 6, n_trim = 10) {
+plot_group <- function(x, group = 6, n_trim = 1) {
   rng <- range(x$trace_distance[classification == group]$distance)
   d <- subset_distance(x, rng[1], rng[2])
   m <- to_matrix(d)
+  
+  if(ncol(m) < n_trim * 3) {
+    n_trim <- 1
+  }
+  
   m <- m[, -c(1:n_trim, ncol(m):(ncol(m)-n_trim+1))]
   x_lab <- as.POSIXct(as.numeric(colnames(m)),
                       origin = '1970-01-01', tz = 'UTC')
   y_lab <- rownames(m)
-  plot_ly(z = m,
+  plot_ly(z = (m),
           x = x_lab,
           y = y_lab,
           colors = viridis(100),
@@ -592,6 +478,8 @@ kable(d[classification %in% c(3:6, NA)])
 
 ## All time
 
+Would log colorscales be more useful than linear ones when large changes are expected? Can show 
+
 ```{r matall}
 
 subplot(plot_group(half_60, group = 3)%>%
@@ -610,13 +498,13 @@ subplot(plot_group(half_60, group = 3)%>%
 
 ```{r am}
 
-subplot(plot_group(subset_time(half_60, am[1], am[2]), group = 3)%>%
+subplot(plot_group(subset_time(half_60, am[1], am[2]), group = 3) %>%
   colorbar(title = "Temperature", x = 1, y = 1),
-        plot_group(subset_time(half_60, am[1], am[2]), group = 4)%>%
+        plot_group(subset_time(half_60, am[1], am[2]), group = 4) %>%
   colorbar(title = "Temperature", x = 1, y = 0.75),
-        plot_group(subset_time(half_60, am[1], am[2]), group = 5)%>%
+        plot_group(subset_time(half_60, am[1], am[2]), group = 5) %>%
   colorbar(title = "Temperature", x = 1, y = 0.5),
-        plot_group(subset_time(half_60, am[1], am[2]), group = 6)%>%
+        plot_group(subset_time(half_60, am[1], am[2]), group = 6) %>%
   colorbar(title = "Temperature", x = 1, y = 0.25),
         nrows = 4, shareX = TRUE)
 
@@ -636,6 +524,7 @@ subplot(plot_group(subset_time(half_60, he[1], he[2]), group = 3)%>%
         plot_group(subset_time(half_60, he[1], he[2]), group = 6)%>%
   colorbar(title = "Temperature", x = 1, y = 0.25),
         nrows = 4, shareX = TRUE)
+
 ```
 
 

@@ -398,6 +398,8 @@ p
 
 # Classification
 
+## Figure
+
 ```{r other}
 
 sub_trace <- sample_times(half_60, n_traces = 5)
@@ -428,6 +430,7 @@ p
 
 ```
 
+## Table
 
 ```{r classificationmatrix}
 
@@ -475,10 +478,14 @@ kable(d[classification %in% c(3:6, NA)])
 
 ```
 
+# Images
+
+Would log colorscales be more useful than linear ones when large changes are expected?
 
 ## All time
 
-Would log colorscales be more useful than linear ones when large changes are expected? Can show 
+
+
 
 ```{r matall}
 
@@ -544,7 +551,6 @@ subplot(plot_group(subset_time(half_60, co[1], co[2]), group = 3)%>%
 
 ```
 
-# Images
 
 ## Saturated ambient
 
@@ -573,6 +579,8 @@ plot_group(subset_time(half_60, co[1], co[2]), group = 6)%>%
 ```
 
 # Slope (Linear fit to log-linear data)
+
+A linear model is fit to the heating and cooling data.  The two results are compared.
 
 ## Trim late times
 
@@ -647,13 +655,26 @@ p
 
 # Thermal Conductivity (distributed lag deconvolution)
 
-Questions: What causes the diminished apparent thermal conductivity with time:
+By using deconvolution in time the effective test length of the test can be extended.
+
+Question: What causes the diminished apparent thermal conductivity with time?
 
 - Transfer from above/below in formation?
 
 - Heat transfer in liner water?
 
 - How can one choose the appropriate slope for quantitative results?
+
+Question: How are the appropriate rates selected to estimate properties of different components of the system?
+
+- Flow
+
+- Vertical thermal conductivity
+
+- Bulk thermal conductivity
+
+- Porosity estimation
+
 
 ## Thermal conductivity at elapsed times
 

@@ -25,7 +25,7 @@ generate_report.character <- function(files_dir,
   setwd(system.file('rmd/', package = 'dts'))
 
 
-  tmp_dir <-  tempdir()
+  tmp_dir <-  paste0(tempdir(), '/dts_', format(Sys.time(), format = '%Y%m%d%H%M%S'))
   fmt <- "bookdown::gitbook"
   cmd = sprintf("bookdown::render_book('index.Rmd', 'bookdown::gitbook',quiet = FALSE,params = list(dts_files = '%s'), new_session = TRUE,output_dir = '%s', clean = FALSE)",
                 files_dir, tmp_dir)
@@ -40,9 +40,7 @@ generate_report.character <- function(files_dir,
             copy.date = TRUE)
   
   
-  file.rename(file.path(output_dir, basename(tmp_dir)), 
-              paste0(output_dir, '/dts_', format(Sys.time(), format = '%Y%m%d%H%M%S')))
-  
+
   setwd(curwd)
 }
 

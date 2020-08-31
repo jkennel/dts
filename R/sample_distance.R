@@ -16,11 +16,11 @@ sample_distance <- function(x, n_traces = 100, ...) UseMethod("sample_distance")
 #' @export
 sample_distance.dts_long <- function(x, n_traces = 100) {
   
-  d <- x[['trace_distance']]
+  d <- get_distance_table(x)
   n <- nrow(d)
   
-  if(n_traces < n %/% 2) {
-    ind <- as.integer(seq.int(1, n %/% 2, length.out = n_traces))
+  if(n_traces < n) {
+    ind <- as.integer(seq.int(1, n, length.out = n_traces))
   } else { 
     warning('More samples than length of test')
     return(x)
@@ -28,7 +28,7 @@ sample_distance.dts_long <- function(x, n_traces = 100) {
   
   d <- d[ind, list(distance)]
   
-  x_sub <- x[['trace_data']][d, on = 'distance']
+  x_sub <- get_data_table(x)[d, on = 'distance']
 
   x_sub
   

@@ -50,11 +50,15 @@ a <- Sys.time()
 
 This script generates a summary report for A-DTS for a single borehole. The only input necessary is the path to the folder that contains XML files. This is a test change.
 
+
 File path: `r params$dts_files`
 
 ```{r getdata, warning=FALSE, message = FALSE, include = FALSE}
 
 dts <- read_dts_xml(params$dts_files, n_cores = 14) %>%
+  dts_to_long()
+
+dts <- read_dts_xml('/home/jonathankennel/Storage/data/dts/gdc_05_2015-11-02/2015-11-02 Active DTS Test GDC-05 7_5 W per m/', n_cores = 14) %>%
   dts_to_long()
 
 n_files  <- nrow(dts$trace_time)
@@ -100,7 +104,8 @@ time_ranges <- function(x, by = 'type') {
 - Total number of files processed: `r n_files`
 - Distance Range: `r distance[1]` to `r distance[2]`
 - Time Range: `r time[1]` to `r time[2]`
-
+- Sample interval (time)
+- Sample interval (depth)
 
 ```{r oupputdata, eval = FALSE}
 

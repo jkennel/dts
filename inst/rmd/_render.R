@@ -1,4 +1,4 @@
-dts_files <- 'home/jonathankennel/Storage/data/dts/gdc_05_2015-11-02/2015-11-02 Active DTS Test GDC-05 7_5 W per m'
+# dts_files <- 'home/jonathankennel/Storage/data/dts/gdc_05_2015-11-02/2015-11-02 Active DTS Test GDC-05 7_5 W per m'
 
 quiet = "--quiet" %in% commandArgs(FALSE)
 formats = commandArgs(TRUE)

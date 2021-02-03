@@ -17,6 +17,7 @@ site: bookdown::bookdown_site
 description: "This report provides information about an A-DTS test."
 params:
   dts_files: '/home/jonathankennel/Storage/data/dts/gdc_05_2015-11-02/2015-11-02 Active DTS Test GDC-05 7_5 W per m/'
+  heating_power: 15
 ---
 
 ```{r setup, include=FALSE}
@@ -58,7 +59,7 @@ File path: `r params$dts_files`
 dts <- read_dts_xml(params$dts_files, n_cores = 14) %>%
   dts_to_long()
 
-dts <- read_dts_xml('/home/jonathankennel/Storage/data/dts/gdc_05_2015-11-02/2015-11-02 Active DTS Test GDC-05 7_5 W per m/', n_cores = 14) %>%
+dts <- read_dts_xml('/home/jonathankennel/Storage/data/dts/sentry_a/2020-10-26 SEN6 MLS A-DTS 15Wm 24h/channel 1/', n_cores = 14) %>%
   dts_to_long()
 
 n_files  <- nrow(dts$trace_time)
@@ -109,7 +110,13 @@ time_ranges <- function(x, by = 'type') {
 
 ```{r oupputdata, eval = FALSE}
 
+
 write_dts(dts)
+
+# write matrix
+# write apparent thermal conductivity
+# write averages
+
 
 ```
 
@@ -312,7 +319,6 @@ kable(tr_time[, list(type, min_time, max_time)])
 ```
 
 ```{r ambientheatingcooling, dev = 'png'}
-
 
 sub_trace <- sample_distance(half, n_traces = 20)
 

@@ -119,7 +119,7 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R') {
     return(list(trace_data = text, trace_time = meta))
   })
   
-  # top cluster
+  # stop cluster
   stopCluster(cl)
   
 

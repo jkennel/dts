@@ -1,11 +1,21 @@
+# # synthetically add a cold spray
+# add_coldspray <- function(x, magnitude = -3) {
+#   
+#   x[['trace_data']][between(distance, 30, 30.5) & 
+#                     between(start, as.POSIXct('2015-11-02 12:00:00', tz = 'UTC'),
+#                             as.POSIXct('2015-11-02 12:02:00', tz = 'UTC')), 
+#                     temperature := temperature +
+#                       rep(waterlevel::window_gaussian(uniqueN(distance), 0.5) * magnitude, uniqueN(start))] 
+#   
+#   return(x)
+# }
+
 find_coldspray <- function(x) {
   
   test <- x$trace_data[, list(cold_spray = temperature - frollmean(temperature, 180)),
                        by = 'distance']
   
-  # test <- test[, list(min(cold_spray, na.rm=TRUE),
-  #                     max(cold_spray, na.rm=TRUE)), by = distance]
-  # 
+
   test  
 }
 

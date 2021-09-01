@@ -9,7 +9,7 @@ thermal_conductivity(x, power)
 \arguments{
 \item{x}{}
 
-\item{power}{}
+\item{power}{the input power to the heating cable}
 }
 \value{
 

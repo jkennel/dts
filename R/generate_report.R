@@ -1,37 +1,71 @@
 #' generate_report
 #'
-#' @param files_dir 
+#' @param input folder or dts data already parsed
 #' @param output_dir 
+#' @param fmt 
+#' @param ... heating_power, heating_type
 #'
 #' @return
 #' @export
 #'
 #' @examples
-generate_report <- function(files_dir,
+generate_report <- function(input,
                             output_dir,
+                            fmt = 'bookdown::gitbook',
                             ...) UseMethod("generate_report")
 
 
 #' @rdname generate_report
 #' @export
-generate_report.character <- function(files_dir,
-                                      output_dir) {
-  curwd <- getwd()
+generate_report.character <- function(input,
+                                      output_dir, 
+                                      fmt = 'bookdown::gitbook',
+                                      n_cores = 1,
+                                      ...) {
   
+  dts <- read_dts_xml(input, n_cores = n_cores) %>%
+    dts_to_long()
+  
+  generate_report(dts, output_dir, fmt, dir_name = input, ...)
+
+}
+
+
+
+#' @rdname generate_report
+#' @export
+generate_report.dts_long <- function(input,
+                                     output_dir, 
+                                     fmt = 'bookdown::gitbook',
+                                     dir_name,
+                                     ...) {
+  
+
   if(!dir.exists(output_dir)){
     dir.create(output_dir)
   }
-  
-  setwd(system.file('rmd/', package = 'dts'))
 
+  curwd <- getwd()
+  
+  args <- list(...)
+  args <- append(list(input = input),
+                 args)
+  
 
   tmp_dir <-  paste0(tempdir(), '/dts_', format(Sys.time(), format = '%Y%m%d%H%M%S'))
-  fmt <- "bookdown::gitbook"
-  cmd = sprintf("bookdown::render_book('index.Rmd', 'bookdown::gitbook',quiet = FALSE,params = list(dts_files = '%s'), new_session = TRUE,output_dir = '%s', clean = FALSE)",
-                files_dir, tmp_dir)
   
-
-  res = bookdown:::Rscript(c('-e', shQuote(cmd)))
+  
+  # generate temporary directory
+  setwd(system.file('rmd/', package = 'dts'))
+  
+  bookdown::render_book(
+    input         = 'index.Rmd', 
+    output_format = fmt, 
+    quiet         = FALSE,
+    params        = args, 
+    new_session   = TRUE,
+    output_dir    = tmp_dir, clean = FALSE)
+  
   
   file.copy(from = tmp_dir,
             to = output_dir,
@@ -39,14 +73,12 @@ generate_report.character <- function(files_dir,
             copy.mode = FALSE,
             copy.date = TRUE)
   
-  
-
   setwd(curwd)
+  
+  return('Book generated successfully. You Rock!')
+  
 }
 
 
-#' @rdname generate_report
-#' @export
-generate_report.dts_long <- function(files_dir,
-                                      output_dir) {
-}
+
+

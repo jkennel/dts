@@ -6,11 +6,11 @@
 \alias{subset_distance.data.table}
 \title{subset_distance}
 \usage{
-subset_distance(x, begin, end, ...)
+subset_distance(x, begin = NULL, end = NULL, by = NULL, ...)
 
-\method{subset_distance}{dts_long}(x, begin, end)
+\method{subset_distance}{dts_long}(x, begin = NULL, end = NULL, by = NULL)
 
-\method{subset_distance}{data.table}(x, begin, end)
+\method{subset_distance}{data.table}(x, begin = NULL, end = NULL, by = NULL)
 }
 \arguments{
 \item{x}{data read from a dts}

@@ -4,12 +4,14 @@
 \alias{heating_time}
 \title{heating_time}
 \usage{
-heating_time(x, n = -10)
+heating_time(x, n = -10, heating_type = "both", distance_range = NULL)
 }
 \arguments{
 \item{x}{}
 
 \item{n}{}
+
+\item{heating_type}{}
 }
 \value{
 

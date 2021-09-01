@@ -3,24 +3,30 @@
 #' @param x 
 #' @param start 
 #' @param end 
+#' @param heating_type 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-fit_heating_cooling <- function(x, start_time = 0.5, end_time = 86400) {
+fit_heating_cooling <- function(x, 
+                                start_time = 0.5,
+                                end_time = 86400,
+                                heating_type = 'heating') {
   
   # x <- copy(x)
   # bp <- time_breakpoints(x, shift = -20, col_name = 'temperature')
-  
-  heat <- get_time_type(x, time_type = 'heating')
-  cool <- get_time_type(x, time_type = 'cooling')
-
-  heat = prep_fit(heat, start_time, end_time)
-  cool = prep_fit(cool, start_time, end_time)
-  
-  heat[, type := 'heating']
-  cool[, type := 'cooling']
+  heat <- list()
+  cool <- list()
+  if(heating_type %in% c('heating', 'both')){
+    heat <- get_time_type(x, time_type = 'heating')
+    heat = prep_fit(heat, start_time, end_time)
+    heat[, type := 'heating']
+  } else if(heating_type %in% c('cooling', 'both')){
+    cool <- get_time_type(x, time_type = 'cooling')
+    cool = prep_fit(cool, start_time, end_time)
+    cool[, type := 'cooling']
+  }
   
   rbindlist(list(heat, cool))
   

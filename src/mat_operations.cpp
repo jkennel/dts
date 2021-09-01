@@ -41,8 +41,95 @@ arma::vec cor_by_trace(arma::mat x, int dim) {
   
 }
 
+//' @title correlation for dts matrix by row or by column
+//' 
+//' 
+//' @param x
+//' @param y
+//' @param dim
+//' 
+//' @examples
+//' 
+//' @export
+// [[Rcpp::export]]
+arma::vec cor_with_trace(arma::mat x, arma::vec y, int dim) {
+  
+  int n;
+  
+  if (dim == 0) {
+    n = x.n_cols;
+  } else {
+    n = x.n_rows;
+  }
+  
+  arma::vec out(n);
+  out.zeros();
+  
+  if (dim == 0) {
+    for (int i=0; i < n; i++) {
+      out(i) = arma::as_scalar(arma::cor(x.col(i), y));
+    }
+  } else {
+    for (int i=0; i < n; i++) {
+      out(i) = arma::as_scalar(arma::cor(x.row(i), y));
+    }
+  }
+  
+  
+  return out;
+  
+}
 
 
+
+//' @title prediction for dts matrix by row or by column
+//' 
+//' 
+//' @param x
+//' @param y
+//' @param dim
+//' 
+//' @examples
+//' 
+//' @export
+// [[Rcpp::export]]
+arma::vec residual_variance_with_trace(arma::mat x, arma::vec y, int dim) {
+  
+  // dim == 0 is by column
+  // dim != 0 is by row
+  
+  int n, n_res;
+  double coef;
+  if (dim == 0) {
+    n = x.n_cols;
+    n_res = x.n_rows;
+  } else {
+    n = x.n_rows;
+    n_res = x.n_cols;
+  }
+  
+  arma::vec out(n);
+  arma::vec res(n_res);
+  out.zeros();
+  res.zeros();
+  
+  if (dim == 0) {
+    for (int i=0; i < n; i++) {
+      coef = arma::as_scalar(arma::solve(x.col(i), y, arma::solve_opts::fast));    // fit model y ~ X
+      out(i) = arma::var(y - x.col(i) * coef);
+    }
+  } else {
+    for (int i=0; i < n; i++) {
+      res  = x.row(i).t();
+      coef = arma::as_scalar(arma::solve(res, y,  arma::solve_opts::fast));    // fit model y ~ X
+      out(i) = arma::var(y - res * coef);
+    }
+  }
+  
+  
+  return out;
+  
+}
 
 //' @title Difference between dts matrix by row or by column
 //' 

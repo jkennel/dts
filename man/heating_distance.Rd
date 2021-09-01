@@ -4,12 +4,14 @@
 \alias{heating_distance}
 \title{heating_distance}
 \usage{
-heating_distance(x, n = 50)
+heating_distance(x, n = 50, heating_type = "both")
 }
 \arguments{
 \item{x}{}
 
 \item{n}{}
+
+\item{heating_type}{}
 }
 \value{
 

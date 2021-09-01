@@ -16,9 +16,10 @@ combine_by_symmetry.numeric <- function(x) {
   
   n <- length(x)
   
-  tmp <- (x[1:(n / 2)] +
-            (x[(n - 1):(n / 2)])) / 2
-  
+  out <- (x[1:(n / 2L)] + (x[(n - 1):(n / 2L)])) / 2L
+
+  out
+
 }
 
 #' @rdname combine_by_symmetry
@@ -26,7 +27,8 @@ combine_by_symmetry.numeric <- function(x) {
 combine_by_symmetry.data.table <- function(x, col_name = 'temperature') {
   
   x[, list(temperature = combine_by_symmetry(get(col_name)), 
-           distance = head(distance, .N/2)), by = start]
+           distance = head(distance, .N / 2L)), by = start]
+  
   
 }
 
@@ -35,9 +37,10 @@ combine_by_symmetry.data.table <- function(x, col_name = 'temperature') {
 #' @export
 combine_by_symmetry.dts_long <- function(x, col_name = 'temperature') {
   
-  x$trace_data <- combine_by_symmetry(x$trace_data, col_name)
-  
+  x$trace_data     <- combine_by_symmetry(get_data_table(x), col_name)
+  x$trace_distance <- get_distance_table(x)[distance %in% unique(get_data_table(x)[['distance']])]
   x
+  
 }
 
 

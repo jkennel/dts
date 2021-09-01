@@ -7,18 +7,22 @@
 \alias{write_dts.dts_long}
 \title{generate_report}
 \usage{
-generate_report(files_dir, output_dir, ...)
+generate_report(input, output_dir, fmt = "bookdown::gitbook", ...)
 
-\method{generate_report}{character}(files_dir, output_dir)
+\method{generate_report}{character}(input, output_dir, fmt = "bookdown::gitbook", n_cores = 1, ...)
 
-\method{generate_report}{dts_long}(files_dir, output_dir)
+\method{generate_report}{dts_long}(input, output_dir, fmt = "bookdown::gitbook", dir_name, ...)
 
 \method{write_dts}{dts_long}(x, output_dir = getwd(), ...)
 }
 \arguments{
-\item{files_dir}{}
+\item{input}{folder or dts data already parsed}
 
 \item{output_dir}{}
+
+\item{fmt}{}
+
+\item{...}{heating_power, heating_type}
 }
 \value{
 

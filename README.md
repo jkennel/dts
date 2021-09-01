@@ -1,4 +1,12 @@
-# dts
+# The `dts` package
+
+<!-- badges: start -->
+
+[![Codecov test coverage](https://codecov.io/gh/jkennel/dts/branch/master/graph/badge.svg)](https://codecov.io/gh/jkennel/dts?branch=master)
+[![R-CMD-check](https://github.com/jkennel/dts/workflows/R-CMD-check/badge.svg)](https://github.com/jkennel/dts/actions)
+
+<!-- badges: end -->
+
 Tools for handling borehole distributed temperature datasets (DTS)
 
 Under construction

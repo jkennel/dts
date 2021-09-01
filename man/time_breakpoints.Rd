@@ -6,11 +6,11 @@
 \alias{time_breakpoints.matrix}
 \title{time_breakpoints}
 \usage{
-time_breakpoints(x, shift, col_name)
+time_breakpoints(x, shift, col_name, type)
 
-\method{time_breakpoints}{default}(x, shift = -10, col_name = "temperature")
+\method{time_breakpoints}{default}(x, shift = -10, col_name = "temperature", type = "both")
 
-\method{time_breakpoints}{matrix}(x, shift = -10, col_name = "temperature")
+\method{time_breakpoints}{matrix}(x, shift = -10, col_name = "temperature", type = "both")
 }
 \arguments{
 \item{x}{data read from a dts}
@@ -18,6 +18,8 @@ time_breakpoints(x, shift, col_name)
 \item{shift}{distance between differences in number of samples}
 
 \item{col_name}{}
+
+\item{log_type}{one of heating, cooling, or both}
 }
 \value{
 

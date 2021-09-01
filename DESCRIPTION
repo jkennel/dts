@@ -1,13 +1,43 @@
 Package: dts
 Type: Package
-Title: What the package does (short line)
+Title: The reading, writing and analysis of distributed temperature sensing data
 Version: 0.0.1
 Date: 2018-07-26
-Author: Jonathan Munn, Carlos Maldaner, Jonathan Kennel, Beth Parker
+Authors@R: c(person("Jonathan", "Kennel", email = "jkennel@uoguelph.ca", role = c("aut", "cre")), 
+             person("Jonathan", "Munn", email = "jmunn@g360group.org", role = c("rtm")),
+             person("Carlos", "Maldaner", email = "cmaldaner@g360group.org", role = c("rtm")),
+             person("Mitchell", "Brown", email = "cmaldaner@g360group.org", role = c("rtm")),
+             person("Beth", "Parker", email = "bparker@uoguelph.ca", role = "rth"))
 Maintainer: Jonathan Kennel <jkennel@uoguelph.ca>
 Description: Helper functions for working with DTS data
-License: What license is it under?
-Depends: XML, data.table, fst, parallel, purrr, rmatio, fasttime
-Imports: Rcpp (>= 0.12.18)
-LinkingTo: Rcpp, RcppArmadillo
+BugReports: https://github.com/jkennel/dts/issues
+URL: https://jkennel.github.io/dts
+License: GPL-3
+Encoding: UTF-8
+Depends: R (>= 4.0.0)
+Imports: 
+    Rcpp (>= 0.12.18),
+    XML, 
+    data.table, 
+    fst, 
+    parallel,
+    purrr, 
+    rmatio, 
+    fasttime,
+    RcppParallel,
+    bookdown
+LinkingTo:
+    Rcpp,
+    RcppArmadillo, 
+    RcppParallel
 RoxygenNote: 7.1.1
+Suggests: 
+    covr,
+    knitr,
+    testthat (>= 3.0.0),
+    rmarkdown,
+    markdown
+LazyData: TRUE
+NeedsCompilation: yes
+SystemRequirements: C++11
+Config/testthat/edition: 3

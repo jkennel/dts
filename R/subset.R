@@ -29,7 +29,7 @@ subset_time.dts_long <- function(x, begin, end) {
 #' @export
 subset_time.data.table <- function(x, begin, end) {
   
-  x[between(start, begin, end)]
+  x[data.table::between(start, lower = begin, upper = end)]
   
 }
 
@@ -40,6 +40,7 @@ subset_time.data.table <- function(x, begin, end) {
 #' @param x data read from a dts
 #' @param begin
 #' @param end
+#' @param by
 #' @param ... 
 #'
 #' @return
@@ -47,15 +48,23 @@ subset_time.data.table <- function(x, begin, end) {
 #' @export
 #'
 #' @examples
-subset_distance <- function(x, begin, end, ...) UseMethod("subset_distance")
+subset_distance <- function(x, begin = NULL, end = NULL, by = NULL, ...) UseMethod("subset_distance")
 
 
 #' @rdname subset_distance
 #' @export
-subset_distance.dts_long <- function(x, begin, end) {
+subset_distance.dts_long <- function(x, begin = NULL, end = NULL, by = NULL) {
   
-  x$trace_data <- subset_distance(x$trace_data, begin, end)
-  x$trace_distance <- subset_distance(x$trace_distance, begin, end)
+  distances <- NULL
+  
+  if (!is.null(by)) {
+    
+    distances <- get_distance_table(x)[get(by) == TRUE]$distance
+
+  }
+  
+  x$trace_data <- subset_distance(x$trace_data, begin, end, by = distances)
+  x$trace_distance <- subset_distance(x$trace_distance, begin, end, by = distances)
   
   x
   
@@ -64,8 +73,15 @@ subset_distance.dts_long <- function(x, begin, end) {
 
 #' @rdname subset_distance
 #' @export
-subset_distance.data.table <- function(x, begin, end) {
+subset_distance.data.table <- function(x, begin = NULL, end = NULL, by = NULL) {
   
-  x[between(distance, begin, end)]
   
+  if (!is.null(by)) {
+    # distances <- x[get(by) == TRUE]$distance
+    x <- x[distance %in% by]
+  } else {
+    x <- x[between(distance, begin, end)]
+  }
+  
+  x
 }

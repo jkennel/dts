@@ -1,3 +1,12 @@
+#' group_time
+#'
+#' @param x time vector that can be coerced to numeric
+#' @param interval size of interval in time units
+#'
+#' @return a vector where each time value is assigned the interval midpoint
+#' @export
+#'
+#' @examples
 group_time <- function(x, interval) {
 
   as.POSIXct((as.numeric(x) %/% interval) * interval + interval / 2,

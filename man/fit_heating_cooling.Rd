@@ -4,10 +4,17 @@
 \alias{fit_heating_cooling}
 \title{fit_heating_cooling}
 \usage{
-fit_heating_cooling(x, start_time = 0.5, end_time = 86400)
+fit_heating_cooling(
+  x,
+  start_time = 0.5,
+  end_time = 86400,
+  heating_type = "heating"
+)
 }
 \arguments{
 \item{x}{}
+
+\item{heating_type}{}
 
 \item{start}{}
 

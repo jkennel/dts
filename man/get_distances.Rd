@@ -4,7 +4,7 @@
 \alias{get_distances}
 \title{get_distances}
 \usage{
-get_distances(file_path)
+get_distances(xml_struct, type)
 }
 \arguments{
 \item{file_path}{path to the file}

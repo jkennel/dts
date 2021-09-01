@@ -4,7 +4,7 @@
 \alias{find_water_bath}
 \title{find_water_bath}
 \usage{
-find_water_bath(x)
+find_water_bath(x, ...)
 }
 \arguments{
 \item{x}{}

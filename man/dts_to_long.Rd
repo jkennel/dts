@@ -4,10 +4,12 @@
 \alias{dts_to_long}
 \title{dts_to_long}
 \usage{
-dts_to_long(dts)
+dts_to_long(dts, trim_distances = TRUE)
 }
 \arguments{
 \item{dts}{list read from read_dts_xml}
+
+\item{trim_distances}{trim distances}
 }
 \value{
 list of data.tables

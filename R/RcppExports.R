@@ -14,6 +14,34 @@ cor_by_trace <- function(x, dim) {
     .Call(`_dts_cor_by_trace`, x, dim)
 }
 
+#' @title correlation for dts matrix by row or by column
+#' 
+#' 
+#' @param x
+#' @param y
+#' @param dim
+#' 
+#' @examples
+#' 
+#' @export
+cor_with_trace <- function(x, y, dim) {
+    .Call(`_dts_cor_with_trace`, x, y, dim)
+}
+
+#' @title prediction for dts matrix by row or by column
+#' 
+#' 
+#' @param x
+#' @param y
+#' @param dim
+#' 
+#' @examples
+#' 
+#' @export
+residual_variance_with_trace <- function(x, y, dim) {
+    .Call(`_dts_residual_variance_with_trace`, x, y, dim)
+}
+
 #' @title Difference between dts matrix by row or by column
 #' 
 #' 

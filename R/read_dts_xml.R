@@ -143,9 +143,7 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R') {
                                    'date_format'), envir=environment())
   
   dts <- parallel::parLapply(cl, fn, function(x){
-    # dts <- lapply( fn, function(x){
-      
-    # x <- '/media/jonathankennel/Seagate Expansion Drive/dts/erin/2021-01-27 Erin MW14A-20 15Wm take 2/channel 1/channel 1_20140101090209015.xml'
+
     # Parse XML file
     r <- XML::xmlRoot(XML::xmlParse(x))
     

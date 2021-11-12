@@ -7,11 +7,12 @@
 heating_time(x, n = -10, heating_type = "both", distance_range = NULL)
 }
 \arguments{
-\item{x}{}
+\item{x}{the DTS dataset}
 
-\item{n}{}
+\item{n}{the spacing between samples in time to calculate the difference.
+Should be a negative number.}
 
-\item{heating_type}{}
+\item{heating_type}{the type of test.  Can be "heating" or "both".}
 }
 \value{
 

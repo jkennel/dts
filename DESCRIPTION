@@ -14,7 +14,7 @@ BugReports: https://github.com/jkennel/dts/issues
 URL: https://jkennel.github.io/dts
 License: GPL-3
 Encoding: UTF-8
-Depends: R (>= 4.0.0)
+Depends: R (>= 4.1.0)
 Imports: 
     Rcpp (>= 0.12.18),
     XML, 
@@ -30,7 +30,7 @@ LinkingTo:
     Rcpp,
     RcppArmadillo, 
     RcppParallel
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Suggests: 
     covr,
     knitr,

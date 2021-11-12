@@ -1,8 +1,8 @@
 #' combine_by_symmetry
 #'
-#' @param x data read from a dts
-#'
+#' @param x 
 #' @return
+#' 
 #' @rdname combine_by_symmetry
 #' @export
 #'

@@ -20,12 +20,17 @@ bath_calibration.dts_long <- function(x, ...) {
   bath_dts <- x$trace_data[distance %in% bath_distance, 
                list(bath_temp_dts = mean(temperature)), by = start]
   
+  # y <- bath_dts[['bath_temp_dts']]
+  # x <- 1:length(y)
+  # fit <- lm(y~splines::ns(x, df = 30))
+  # points(fit$fitted.values, type = 'l', col = 'green')
+  # print(broom::glance(fit))
 
   # add bath temperature
   x$trace_time[bath_dts, bath_temp_dts := bath_temp_dts, on = 'start']
   
   # adjustment to apply
-  x$trace_time[, calib_adj := bath_temp_dts - calib_temperature]#runmed(calib_temperature, 7)]
+  x$trace_time[, calib_adj := bath_temp_dts - calib_temperature]
 
   x$trace_data[x$trace_time, temperature := temperature - calib_adj, on = 'start']
   

@@ -354,7 +354,7 @@ p <- plot_ly(z = m,
              y = rownames(m),
              colors = viridis(100),
              type = "heatmap",
-             height = 200) %>%
+             height = 200) |>
     layout(yaxis = list(autorange="reversed"))
 p
 
@@ -516,7 +516,7 @@ plot_group <- function(x, group = n_groups, n_trim = 1) {
           x = x_lab,
           y = y_lab,
           colors = viridis(100),
-          type = "heatmap") %>%
+          type = "heatmap") |>
     layout(yaxis = list(autorange="reversed"))
 }
 
@@ -545,7 +545,7 @@ Would log colorscales be more useful than linear ones when large changes are exp
 ```{r matall}
 p <- list()
 for (i in seq_along(subs)) {
-  p[[i]] <- plot_group(sub_60, subs[i]) %>%
+  p[[i]] <- plot_group(sub_60, subs[i]) |>
   colorbar(title = "Temperature", x = 1, y = (1 - (i-1) / length(subs)))
 }
 
@@ -559,7 +559,7 @@ subplot(p, nrows = length(subs), shareX = TRUE)
 ```{r am}
 p <- list()
 for (i in seq_along(subs)) {
-  p[[i]] <- plot_group(subset_time(sub_60, am[1], am[2]), subs[i]) %>%
+  p[[i]] <- plot_group(subset_time(sub_60, am[1], am[2]), subs[i]) |>
   colorbar(title = "Temperature", x = 1, y = 1-(i-1)/length(subs))
 }
 
@@ -575,7 +575,7 @@ if(heating_type %in% c('heating', 'both')){
 
 p <- list()
 for (i in seq_along(subs)) {
-  p[[i]] <- plot_group(subset_time(sub_60, he[1], he[2]), subs[i]) %>%
+  p[[i]] <- plot_group(subset_time(sub_60, he[1], he[2]), subs[i]) |>
   colorbar(title = "Temperature", x = 1, y = 1-(i-1)/length(subs))
 }
 
@@ -593,7 +593,7 @@ if(heating_type %in% c('cooling', 'both')){
   
 p <- list()
 for (i in seq_along(subs)) {
-  p[[i]] <- plot_group(subset_time(sub_60, co[1], co[2]), subs[i]) %>%
+  p[[i]] <- plot_group(subset_time(sub_60, co[1], co[2]), subs[i]) |>
   colorbar(title = "Temperature", x = 1, y = 1-(i-1)/length(subs))
 }
 
@@ -608,7 +608,7 @@ subplot(p, nrows = length(subs),, shareX = TRUE)
 ## Saturated ambient
 
 ```{r amtmp}
-plot_group(subset_time(sub_60, am[1], am[2]), group = n_groups)%>%
+plot_group(subset_time(sub_60, am[1], am[2]), group = n_groups) |>
   colorbar(title = "Temperature")
 
 ```
@@ -617,7 +617,7 @@ plot_group(subset_time(sub_60, am[1], am[2]), group = n_groups)%>%
 
 ```{r hetmp}
 if(heating_type %in% c('heating', 'both')){
-  plot_group(subset_time(sub_60, he[1], he[2]), group = n_groups)%>%
+  plot_group(subset_time(sub_60, he[1], he[2]), group = n_groups) |>
     colorbar(title = "Temperature")
 } else {
   print('no heating')
@@ -629,7 +629,7 @@ if(heating_type %in% c('heating', 'both')){
 
 ```{r cotmp}
 if(heating_type %in% c('cooling', 'both')){
-  plot_group(subset_time(half_60, co[1], co[2]), group = n_groups)%>%
+  plot_group(subset_time(half_60, co[1], co[2]), group = n_groups) |>
     colorbar(title = "Temperature")
 } else {
   print('no cooling')

@@ -59,15 +59,22 @@ read_dts_zip <- function(file_path, ...) {
 #' @param in_dir path to the input folder
 #' @param n_cores number of cores to use for parallel processing
 #' @param date_format 'matlab' or 'R' format
+#' @param max_files maximum number of files to read
 #'
 #' @return dts list of results
 #' @export
 #'
 #'
-read_dts_xml <- function(in_dir, n_cores, date_format = 'R') {
+read_dts_xml <- function(in_dir, n_cores, date_format = 'R', max_files = Inf) {
   
   # get DTS files
   fn <- list.files(in_dir, full.names = TRUE, pattern = "\\.xml$")
+  fn <- sort(fn)
+  
+  if (length(fn) > max_files) {
+    fn <- fn[1:max_files]
+  }
+  
   
   r <- XML::xmlRoot(XML::xmlParse(fn[1]))
  

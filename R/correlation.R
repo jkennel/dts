@@ -88,8 +88,8 @@ cor_time <- function(x, n=21, max_size = 3000) {
 #                     colors = viridis(20),
 #                     type = "heatmap",
 #                     zmin = 0,
-#                     zmax = 1) %>% 
-#     hide_colorbar %>%
+#                     zmax = 1) |>
+#     hide_colorbar |>
 #     layout(xaxis = ax, yaxis = ax)
 # }
 # 

@@ -18,7 +18,7 @@ group_time <- function(x, interval) {
 #' average_time
 #'
 #' @param x data read from a dts
-#' @param n
+#' @param n size of the interval to average in seconds
 #'
 #' @return
 #' @rdname average_time
@@ -26,8 +26,6 @@ group_time <- function(x, interval) {
 #'
 #' @examples
 average_time <- function(x, n) UseMethod("average_time")
-
-
 
 
 #' @rdname average_time

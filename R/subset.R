@@ -57,10 +57,10 @@ subset_distance.dts_long <- function(x, begin = NULL, end = NULL, by = NULL) {
   
   distances <- NULL
   
+  # find the distances where by is TRUE
   if (!is.null(by)) {
     
     distances <- get_distance_table(x)[get(by) == TRUE]$distance
-
   }
   
   x$trace_data <- subset_distance(x$trace_data, begin, end, by = distances)
@@ -77,8 +77,11 @@ subset_distance.data.table <- function(x, begin = NULL, end = NULL, by = NULL) {
   
   
   if (!is.null(by)) {
-    # distances <- x[get(by) == TRUE]$distance
-    x <- x[distance %in% by]
+    if(is.character(by)) {
+      x <- x[get(by) == TRUE]
+    } else {
+      x <- x[distance %in% by]
+    }
   } else {
     x <- x[between(distance, begin, end)]
   }

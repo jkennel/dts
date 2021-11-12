@@ -196,7 +196,7 @@ process_terminal <- function (x, k = 15, fill_value = NA_real_) {
 
 #' add_classification
 #'
-#' @param x 
+#' @param x
 #'
 #' @return
 #' @export

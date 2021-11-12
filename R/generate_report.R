@@ -23,7 +23,7 @@ generate_report.character <- function(input,
                                       n_cores = 1,
                                       ...) {
   
-  dts <- read_dts_xml(input, n_cores = n_cores) %>%
+  dts <- read_dts_xml(input, n_cores = n_cores) |>
     dts_to_long()
   
   generate_report(dts, output_dir, fmt, dir_name = input, ...)

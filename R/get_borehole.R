@@ -3,8 +3,8 @@
 # 
 # 
 # label_dts <- function(x) {
-#   x <- dts# %>% combine_by_symmetry()
-#   # sub <- x %>% average_time(n=5)
+#   x <- dts# |> combine_by_symmetry()
+#   # sub <- x |> average_time(n=5)
 #   n_comp <- 10
 #   x <- to_matrix(x)
 #   a <- z

@@ -30,16 +30,16 @@ denoise_by_trace <- function(x, filter_length = 9) {
   n <- nrow(mat_high_pass)
   n_terms <- 10
   
-  for (i in (n_terms+1):(n-(n_terms+1))) {
+  for (i in (n_terms + 1):(n-(n_terms + 1))) {
     
     inds <- sort(unique(c(i + 1:n_terms, i - 1:n_terms)))
     
-    mat_noise[i,] <- nafill(predict(
+    mat_noise[i,] <- data.table::nafill(predict(
       lm(c(NA, diff(mat[i,]))~t(mat_high_pass[inds,])-1, na.action = na.exclude)), fill = 0)
     
   }
   
-  x$trace_data[, temperature := as.numeric(mat-mat_noise)]
+  x$trace_data[, temperature := as.numeric(mat - mat_noise)]
   x
   
 }
@@ -106,7 +106,7 @@ denoise_by_trace_2 <- function(x) {
   p <- plot_ly(z = half[,rng],
 
                colors = viridis(100),
-               type = "heatmap") %>%
+               type = "heatmap") |>
     layout(yaxis = list(autorange="reversed"))
     # colorbar(limits = c(7.5, 8.))
   p

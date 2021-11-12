@@ -14,17 +14,17 @@ fit_heating_cooling <- function(x,
                                 end_time = 86400,
                                 heating_type = 'heating') {
   
-  # x <- copy(x)
-  # bp <- time_breakpoints(x, shift = -20, col_name = 'temperature')
+
   heat <- list()
   cool <- list()
+
   if(heating_type %in% c('heating', 'both')){
     heat <- get_time_type(x, time_type = 'heating')
-    heat = prep_fit(heat, start_time, end_time)
+    heat <- prep_fit(heat, start_time, end_time)
     heat[, type := 'heating']
   } else if(heating_type %in% c('cooling', 'both')){
     cool <- get_time_type(x, time_type = 'cooling')
-    cool = prep_fit(cool, start_time, end_time)
+    cool <- prep_fit(cool, start_time, end_time)
     cool[, type := 'cooling']
   }
   
@@ -132,9 +132,9 @@ add_fit_columns <- function(x) {
 #   rate <- c(rate, rep(0, n_pad - n_rate))
 #   
 #   dat <- data.table(temp = pad, rate = rate)
-#   rec <- recipe(temp~., dat) %>%
-#     step_distributed_lag(rate, knots = log_lags(10, 10000)) %>%
-#     prep() %>%
+#   rec <- recipe(temp~., dat) |>
+#     step_distributed_lag(rate, knots = log_lags(10, 10000)) |>
+#     prep() |>
 #     portion()
 # 
 #   fit_dist <- lm(outcome ~ distributed_lag, 

@@ -16,7 +16,7 @@ combine_by_symmetry(x, ...)
 \method{combine_by_symmetry}{dts_long}(x, col_name = "temperature")
 }
 \arguments{
-\item{x}{data read from a dts}
+\item{x}{}
 }
 \value{
 

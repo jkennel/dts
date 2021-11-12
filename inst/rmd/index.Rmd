@@ -73,24 +73,88 @@ distance_ranges <- function(x, by = 'bath') {
   get_distance_table(x)[, list(min_distance = min(distance),
                       max_distance = max(distance)), by = list(type = get(by))]
 }
+
 time_ranges <- function(x, by = 'type') {
   get_time_table(x)[, list(min_time = min(start),
                       max_time = max(start)), by = list(type = get(by))]
 }
 
-# smooth for calibration - not sure this helps
+# smooth for calibration - very minor improvement
+y <- dts$trace_time$calib_temperature
+x <- 1:nrow(dts$trace_time)
+fit <- lm(y~splines::ns(x, df = 30))$fitted.values
+dts$trace_time$calib_temperature <- fit
 
-# attempt to reduce noise
-dts$trace_time$calib_temperature <- caTools::runmean(dts$trace_time$calib_temperature, 6, endrule = 'keep')
 
-dts <- denoise_by_trace(dts, 9)
 
 
 # correlation to probe temperature method to locate the water bath
-dts <- find_water_bath(dts)
+dts <- find_water_bath(dts, buffer = 0.05)
+
+
+# calculate run length encoding on sign of change
+# if the length is short and the total change is small move towards the mean
+
+
+bath_distance     <- dts$trace_distance[bath == TRUE]$distance
+non_bath_distance <- dts$trace_distance[bath == FALSE]$distance
+bath_dts <- dts$trace_data[distance %in% bath_distance]
+
+bath_dts <- bath_dts[get_time_table(dts)[, list(start, calib_temperature)], on = 'start']
+bath_dts <- bath_dts[distance < 100]
+
+id <- c()
+for(i in seq_along(1:1500)) {
+  tmp <- rle(sign(diff(dts$trace_data[distance == non_bath_distance[i]]$temperature)))
+  print(table(tmp$lengths))
+  wh <- which(tmp$lengths == max(tmp$lengths))
+  print(wh)
+  print(cumsum(tmp$lengths)[wh])
+  id <- c(id, cumsum(tmp$lengths)[wh])
+}
+plot(sort(id), type = 'l')
+
+plot(dts$trace_data[distance == non_bath_distance[600]]$temperature[600:800], type = 'l')
+abline(v = as.numeric(names(head(rev(sort(table(id))), 15)))-600, lty = 2,lwd = 3, col = 'red')
+
+plot(temperature~calib_temperature, bath_dts[distance == bath_distance[5]][1:100], pch = 20, cex = 0.6, type='l')
+points(temperature~calib_temperature, bath_dts[distance == bath_distance[6]][1:100], pch = 20, cex = 0.6, col = 'red', type = 'l')
+
+
+grp <- bath_dts[, list(mean_dts_temp = mean(temperature),
+                mean_calib_temp = mean(calib_temperature)), by = start]
+
+m <- to_matrix(bath_dts[distance < 100], col_name = 'temperature')
+
+plot_ly(z = (m),
+        # x = x_lab,
+        # y = y_lab,
+        colors = viridis(100),
+        type = "heatmap")
+
 
 # apply the calibration to data
 dts <- bath_calibration(dts)
+
+a <- to_matrix(dts)
+sub <- 1:300
+y_lab <- as.numeric(rownames(a))
+
+x_lab <- as.POSIXct(as.numeric(colnames(a)[sub]),
+                    origin = '1970-01-01', tz = 'UTC')
+p <- a[101, ]
+q <- a[100, ]
+r <- a[102, ]
+x <- 1:length(q)
+plot(o[1:100], type = 'l')
+points(p[1:100], type = 'l', col = 'red')
+points(p - (lm(q~splines::ns(x, 100))$residuals+lm(r~splines::ns(x, 100))$residuals)/2, col = 'blue', type = 'l')
+mean(abs(diff(a[101, ])))
+plot_ly(z = a[,sub],
+        # x = x_lab,
+        # y = y_lab,
+        colors = viridis(100),
+        type = "heatmap") 
 
 
 # limit the distance range to aid in finding heating cutoff
@@ -98,13 +162,15 @@ distance_range <- get_bath_limits(dts)
 dts <- heating_time(dts, 
                     heating_type = heating_type, 
                     distance_range = distance_range)
+# par(new = TRUE)
+# plot(dts::subset_distance(dts, begin = 90, end = 90.1)$trace_data$temperature, col = 'red', type = 'l')
 
 dts <- heating_distance(dts, 
                         heating_type = heating_type)
-
+plot(heated~distance, get_distance_table(dts), type='l')
 
 half <- combine_by_symmetry(dts)
-# half <- half_data(dts, type='head')
+# half <- half_data(dts, type = 'head')
   
 half <- find_coldspray(half, type = 'head')
 
@@ -354,7 +420,7 @@ p <- plot_ly(z = m,
              y = rownames(m),
              colors = viridis(100),
              type = "heatmap",
-             height = 200) %>%
+             height = 200) |>
     layout(yaxis = list(autorange="reversed"))
 p
 
@@ -516,7 +582,7 @@ plot_group <- function(x, group = n_groups, n_trim = 1) {
           x = x_lab,
           y = y_lab,
           colors = viridis(100),
-          type = "heatmap") %>%
+          type = "heatmap") |>
     layout(yaxis = list(autorange="reversed"))
 }
 
@@ -545,7 +611,7 @@ Would log colorscales be more useful than linear ones when large changes are exp
 ```{r matall}
 p <- list()
 for (i in seq_along(subs)) {
-  p[[i]] <- plot_group(sub_60, subs[i]) %>%
+  p[[i]] <- plot_group(sub_60, subs[i]) |>
   colorbar(title = "Temperature", x = 1, y = (1 - (i-1) / length(subs)))
 }
 
@@ -559,7 +625,7 @@ subplot(p, nrows = length(subs), shareX = TRUE)
 ```{r am}
 p <- list()
 for (i in seq_along(subs)) {
-  p[[i]] <- plot_group(subset_time(sub_60, am[1], am[2]), subs[i]) %>%
+  p[[i]] <- plot_group(subset_time(sub_60, am[1], am[2]), subs[i]) |>
   colorbar(title = "Temperature", x = 1, y = 1-(i-1)/length(subs))
 }
 
@@ -575,7 +641,7 @@ if(heating_type %in% c('heating', 'both')){
 
 p <- list()
 for (i in seq_along(subs)) {
-  p[[i]] <- plot_group(subset_time(sub_60, he[1], he[2]), subs[i]) %>%
+  p[[i]] <- plot_group(subset_time(sub_60, he[1], he[2]), subs[i]) |>
   colorbar(title = "Temperature", x = 1, y = 1-(i-1)/length(subs))
 }
 
@@ -593,7 +659,7 @@ if(heating_type %in% c('cooling', 'both')){
   
 p <- list()
 for (i in seq_along(subs)) {
-  p[[i]] <- plot_group(subset_time(sub_60, co[1], co[2]), subs[i]) %>%
+  p[[i]] <- plot_group(subset_time(sub_60, co[1], co[2]), subs[i]) |>
   colorbar(title = "Temperature", x = 1, y = 1-(i-1)/length(subs))
 }
 
@@ -608,7 +674,7 @@ subplot(p, nrows = length(subs),, shareX = TRUE)
 ## Saturated ambient
 
 ```{r amtmp}
-plot_group(subset_time(sub_60, am[1], am[2]), group = n_groups)%>%
+plot_group(subset_time(sub_60, am[1], am[2]), group = n_groups) |>
   colorbar(title = "Temperature")
 
 ```
@@ -617,7 +683,7 @@ plot_group(subset_time(sub_60, am[1], am[2]), group = n_groups)%>%
 
 ```{r hetmp}
 if(heating_type %in% c('heating', 'both')){
-  plot_group(subset_time(sub_60, he[1], he[2]), group = n_groups)%>%
+  plot_group(subset_time(sub_60, he[1], he[2]), group = n_groups) |>
     colorbar(title = "Temperature")
 } else {
   print('no heating')
@@ -629,7 +695,7 @@ if(heating_type %in% c('heating', 'both')){
 
 ```{r cotmp}
 if(heating_type %in% c('cooling', 'both')){
-  plot_group(subset_time(half_60, co[1], co[2]), group = n_groups)%>%
+  plot_group(subset_time(half_60, co[1], co[2]), group = n_groups) |>
     colorbar(title = "Temperature")
 } else {
   print('no cooling')

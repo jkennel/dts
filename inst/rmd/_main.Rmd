@@ -73,8 +73,8 @@ for (i in 1:n) {
   data <- rbr_sum$data[[i]]
   p[[i]] <- plot_ly(data, x = ~datetime, y = ~median,
                 type = 'scatter', mode = 'lines', 
-                name = 'median') %>%
-    add_lines(x = ~datetime, y = ~max, name = 'max') %>%
+                name = 'median') |>
+    add_lines(x = ~datetime, y = ~max, name = 'max') |>
     add_lines(x = ~datetime, y = ~min, name = 'min')
   
   

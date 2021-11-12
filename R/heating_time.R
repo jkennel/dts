@@ -1,8 +1,9 @@
 #' heating_time
 #'
-#' @param x 
-#' @param n 
-#' @param heating_type
+#' @param x the DTS dataset
+#' @param n the spacing between samples in time to calculate the difference.
+#'  Should be a negative number.
+#' @param heating_type the type of test.  Can be "heating" or "both".
 #'
 #' @return
 #' @export

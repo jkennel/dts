@@ -2,9 +2,12 @@
 % Please edit documentation in R/write_dts.R
 \name{write_dts}
 \alias{write_dts}
+\alias{write_dts.dts_long}
 \title{write_dts}
 \usage{
 write_dts(x, output_dir, ...)
+
+\method{write_dts}{dts_long}(x, output_dir = getwd(), ...)
 }
 \arguments{
 \item{x}{}

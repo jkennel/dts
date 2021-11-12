@@ -46,41 +46,6 @@ find_coldspray <- function(x, type = 'head') {
 }
 
 
-#' correlate_with_temperature
-#'
-#' @param x 
-#' @param calib_t 
-#' @param buffer 
-#' @param power 
-#' @param n_rem 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-correlate_with_temperature <- function(x, 
-                                       calib_t, 
-                                       buffer = 0.003, 
-                                       power = 8,
-                                       n_rem = 3) {
-  
-  temp    <- to_matrix(x)
-  r_2     <- cor_with_trace(temp, calib_t, 1)^power
-  
-  # determine cutoff
-  n       <- length(r_2)
-  max_r_2 <- max(r_2)
-  cutoff  <- max(max_r_2) - buffer * max_r_2
-  wh      <- which(r_2 > cutoff)
-  wh_1    <- wh[wh <= n/2]
-  wh_2    <- wh[wh > n/2]
-  
-  wh      <- c(wh_1[-c(1:n_rem, length(wh_1):(length(wh_1)+1-n_rem))],
-               wh_2[-c(1:n_rem, length(wh_2):(length(wh_2)+1-n_rem))])
-  
-  wh
-}
-
 
 #' find_reference
 #'
@@ -91,6 +56,8 @@ correlate_with_temperature <- function(x,
 #'
 #' @examples
 find_reference <- function(x, ...) {
+  
+  reference <- NULL
   
   # calculate correlation with probes
   calib_t <- x[["trace_time"]][["ref_temperature"]]
@@ -104,73 +71,6 @@ find_reference <- function(x, ...) {
 }
 
 
-#' find_water_bath
-#'
-#' @param x 
-#'
-#' @return
-#' @export
-#'
-#' @examples
-find_water_bath <- function(x, ...) {
-  
-  # calculate correlation with probes
-  calib_t <- x[["trace_time"]][["calib_temperature"]]
-  
-  wh <- correlate_with_temperature(x, calib_t, ...)
-  
-  x$trace_distance[wh, bath := TRUE]
-  
-  x
-}  
- 
-
-#' #' find_water_bath_2
-#' #'
-#' #' @param x 
-#' #'
-#' #' @return
-#' #' @export
-#' #'
-#' #' @examples
-#' find_water_bath_2 <- function(x) {
-#'   
-#'   calib_t <- x$trace_time$calib_temperature
-#'   
-#'   
-#'   
-#'   # unheated traces
-#'   # d <- x$trace_distance[heated == FALSE][, list(distance)]
-#'   # 
-#'   # z <- x$trace_data[d, on = 'distance']
-#'   z <- t(to_matrix(x$trace_data))
-#'   z <- abs(z - calib_t)
-#'   
-#'   # look the median differences and the standard deviation of differences 
-#'   med <- apply(z, 2, median)
-#'   mad <- apply(z, 2, mad)
-#'   
-#'   q_med <- quantile(med, 0.01) 
-#'   q_mad <- quantile(mad, 0.01)
-#'   
-#'   wh <- which(med < q_med * 3 & mad < q_mad * 2)
-#'   
-#'   x$trace_distance[wh, bath := TRUE]
-#'   
-#'   # mn_mad  <- min(mad)
-#'   # mn_med  <- min(med)
-#'   
-#'   # sd_min <- quantile(frollapply(med, n = 13, FUN = mad, align = 'center'), 
-#'   #                    na.rm = TRUE,
-#'   #                    probs = 0.01)
-#'   # sel <- which(mad < (mn_mad + sd_min * 7))
-#'   # 
-#'   # x$trace_distance[d[sel], bath := TRUE, on ='distance']
-#'   
-#'   x
-#'   
-#' }
-
 # dts <- half_data(dts)
 # 
 # bp <- time_breakpoints(dts, shift = -20)
@@ -182,7 +82,7 @@ find_water_bath <- function(x, ...) {
 # # x <- to_matrix(sub)
 # # fig <- plot_ly(z = x,
 # # 
-# #                type = "heatmap") %>%
+# #                type = "heatmap") |>
 # #   hide_colorbar()
 # # fig
 # 

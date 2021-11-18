@@ -17,7 +17,7 @@ Under construction
 
 library(remotes)
 
-remotes::install_github('g360codes/dts')
+remotes::install_github('jkennel/dts')
 ```
 
 # Generate report

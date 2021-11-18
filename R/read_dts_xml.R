@@ -86,6 +86,8 @@ read_dts_xml <- function(in_dir,
   # get DTS equipment type
   type <- get_dts_type(r)
 
+
+  
   
   # equipment specific XML fields
   start_time_name <- get_start_time_from_type(type)
@@ -93,25 +95,68 @@ read_dts_xml <- function(in_dir,
   log_name        <- get_log_name_from_type(type)
   n_skip          <- get_n_skip_from_type(type)
   
-  event_info <- get_distances(r, type)
+  # Is cable double ended 
+  double_ended <- as.integer(XML::getChildrenStrings(r[[log_name]][['customData']][['isDoubleEnded']], 
+                                                     len = 1L, addNames = FALSE))
+  
+  if(double_ended){
+    if(return_stokes) {
+      select <- c(1,6)
+    } else {
+      select <- c(1:6)
+    }
+    nms <- c('distance', 'stokes','anti_stokes', 'rev_stokes','rev_anti_stokes', 'temperature')
+  } else {
+    if(return_stokes) {
+      select <- c(1,4)
+    } else {
+      select <- c(1:4)
+    }
+    nms <- c('distance', 'stokes','anti_stokes', 'temperature')
+  }
+  
+  # length step increment
+  if (type == 'ultima') {
+    step_increment <- as.numeric(XML::getChildrenStrings(r[[log_name]][['blockInfo']][['stepIncrement']],
+                                                         len = 1L, addNames = FALSE))
+  } else if (type == 'xt') {
+    step_increment <- as.numeric(XML::getChildrenStrings(r[[log_name]][['stepIncrement']],
+                                                         len = 1L, addNames = FALSE))
+  }
+  
+  # length of fiber
+  fibre_length <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['UserConfiguration']][['ChannelConfiguration']][['AcquisitionConfiguration']][['MeasurementLength']],
+                                                     len = 1L, addNames = FALSE))
+  
   
   
   # get a few constants from the setup
-  differential_loss_internal <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['MeasurementSettings']][['InternalDifferentialLoss']]))
-  temperature_scaling <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['MeasurementSettings']][['TemperatureScalingFactor']]))
-  averaging_time <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['MeasurementSettings']][['InternalAveragingTime']]))
+  differential_loss_internal <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['MeasurementSettings']][['InternalDifferentialLoss']],
+                                                                   len = 1L, addNames = FALSE))
+  temperature_scaling <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['MeasurementSettings']][['TemperatureScalingFactor']],
+                                                            len = 1L, addNames = FALSE))
+  averaging_time <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['MeasurementSettings']][['InternalAveragingTime']],
+                                                       len = 1L, addNames = FALSE))
 
-  effective_stokes <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['RawProcessingSettings']][['EffectiveStokesRI']]))
-  effective_anti_stokes <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['RawProcessingSettings']][['EffectiveAntiStokesRI']]))
-  correct_for_zig_zag <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['RawProcessingSettings']][['CorrectForZigZag']]))
-  laser_on_length <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['RawProcessingSettings']][['LaserOnLength']]))
+  effective_stokes <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['RawProcessingSettings']][['EffectiveStokesRI']],
+                                                         len = 1L, addNames = FALSE))
+  effective_anti_stokes <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['RawProcessingSettings']][['EffectiveAntiStokesRI']],
+                                                              len = 1L, addNames = FALSE))
+  correct_for_zig_zag <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['RawProcessingSettings']][['CorrectForZigZag']],
+                                                            len = 1L, addNames = FALSE))
+  laser_on_length <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['RawProcessingSettings']][['LaserOnLength']],
+                                                        len = 1L, addNames = FALSE))
 
 
-  ref_temp_start <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['TemperatureReferenceSettings']][['InternalReferenceStart']]))
-  ref_temp_end <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['TemperatureReferenceSettings']][['InternalReferenceStop']]))
+  ref_temp_start <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['TemperatureReferenceSettings']][['InternalReferenceStart']],
+                                                       len = 1L, addNames = FALSE))
+  ref_temp_end <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['SystemSettings']][['TemperatureReferenceSettings']][['InternalReferenceStop']],
+                                                     len = 1L, addNames = FALSE))
 
-  configuration_name <- XML::getChildrenStrings(r[[log_name]][['customData']][['UserConfiguration']][['MainMeasurementConfiguration']][['ConfigurationName']])
-  measurement_interval <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['UserConfiguration']][['MainMeasurementConfiguration']][['MeasurementInterval']]))
+  configuration_name <- XML::getChildrenStrings(r[[log_name]][['customData']][['UserConfiguration']][['MainMeasurementConfiguration']][['ConfigurationName']],
+                                                len = 1L, addNames = FALSE)
+  measurement_interval <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['UserConfiguration']][['MainMeasurementConfiguration']][['MeasurementInterval']],
+                                                             len = 1L, addNames = FALSE))
   # laser_frequency <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['UserConfiguration']][['MainMeasurementConfiguration']][['LaserFrequency']]))
   
   
@@ -144,7 +189,7 @@ read_dts_xml <- function(in_dir,
   channels <- channels[channels2, on ='channel_number']
   
   
-  temp_file <- file.path(tempdir(), paste0(Sys.time(), '.csv'))
+  temp_file <- tempfile(fileext = '.csv')
   print(temp_file)
   
   XML::free(z)
@@ -158,7 +203,10 @@ read_dts_xml <- function(in_dir,
                                       'log_name',
                                       'n_skip',
                                       'date_format',
-                                      'temp_file'), envir=environment())
+                                      'temp_file',
+                                      'double_ended',
+                                      'select',
+                                      'nms'), envir=environment())
   
   dts <- parallel::parLapply(cl, fn, function(x){
 
@@ -168,47 +216,38 @@ read_dts_xml <- function(in_dir,
     
     
     # Get datetime of measurement
-    start <- fasttime::fastPOSIXct(XML::getChildrenStrings(r[[log_name]][[start_time_name]]), tz = 'UTC')
-    end   <- fasttime::fastPOSIXct(XML::getChildrenStrings(r[[log_name]][[end_time_name]]), tz = 'UTC')
-    mid   <- as.POSIXct(mean(as.numeric(c(start, end))), origin = '1970-01-01', tz = 'UTC')
-    dt    <- as.numeric(end) - as.numeric(start)
+    start <- fasttime::fastPOSIXct(XML::getChildrenStrings(r[[log_name]][[start_time_name]],
+                                                           len = 1L, addNames = FALSE), tz = 'UTC')
+    end   <- fasttime::fastPOSIXct(XML::getChildrenStrings(r[[log_name]][[end_time_name]],
+                                                           len = 1L, addNames = FALSE), tz = 'UTC')
+    # mid   <- as.POSIXct(mean(as.numeric(c(start, end))), origin = '1970-01-01', tz = 'UTC')
+    # dt    <- as.numeric(end) - as.numeric(start)
     
-    # convert to matlab datetime
-    if (date_format == 'matlab') {
-      start <- dates_r_to_matlab(start)
-      end <- dates_r_to_matlab(end)
-    }
+    # # convert to matlab datetime
+    # if (date_format == 'matlab') {
+    #   start <- dates_r_to_matlab(start)
+    #   end <- dates_r_to_matlab(end)
+    # }
     
-    
-    # Is cable double ended 
-    double_ended <- as.integer(XML::getChildrenStrings(r[[log_name]][['customData']][['isDoubleEnded']]))
-    
-    if(double_ended){
-      if(return_stokes) {
-        select <- c(1,6)
-      } else {
-        select <- c(1:6)
-      }
-      nms <- c('distance', 'stokes','anti_stokes', 'rev_stokes','rev_anti_stokes', 'temperature')
-    } else {
-      if(return_stokes) {
-        select <- c(1,4)
-      } else {
-        select <- c(1:4)
-      }
-      nms <- c('distance', 'stokes','anti_stokes', 'temperature')
-    }
     
     # Get reference temperatures
-    probe_1  <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['probe1Temperature']]))
-    probe_2  <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['probe2Temperature']]))
-    n_forward  <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['forwardSignalAverages']]))
-    n_reverse  <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['reverseSignalAverages']]))
+    probe_1  <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['probe1Temperature']]),
+                           len = 1L, addNames = FALSE)
+    probe_2  <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['probe2Temperature']]),
+                           len = 1L, addNames = FALSE)
+    n_forward  <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['forwardSignalAverages']]),
+                             len = 1L, addNames = FALSE)
+    n_reverse  <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['reverseSignalAverages']]),
+                             len = 1L, addNames = FALSE)
     
-    ref_tmp  <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['referenceTemperature']]))
-    ref_voltage  <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['referenceProbeVoltage']]))
-    probe_1_voltage <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['probe1Voltage']]))
-    probe_2_voltage <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['probe2Voltage']]))
+    ref_tmp  <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['referenceTemperature']]),
+                           len = 1L, addNames = FALSE)
+    ref_voltage  <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['referenceProbeVoltage']]),
+                               len = 1L, addNames = FALSE)
+    probe_1_voltage <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['probe1Voltage']]),
+                                  len = 1L, addNames = FALSE)
+    probe_2_voltage <- as.numeric(XML::getChildrenStrings(r[[log_name]][['customData']][['probe2Voltage']]),
+                                  len = 1L, addNames = FALSE)
     
 
     
@@ -229,17 +268,17 @@ read_dts_xml <- function(in_dir,
                               strip.white = FALSE)
     data.table::setnames(text, nms[select])
     data.table::set(text, j = 'start', value = start)
-    data.table::fwrite(text, temp_file, nThread = 1, append = TRUE)
+    # data.table::fwrite(text, temp_file, nThread = 1, append = TRUE)
     
     
     # get metadata
     meta <- data.table::data.table(start, 
                                    end, 
-                                   mid, 
-                                   dt, 
+                                   # mid, 
+                                   # dt, 
                                    probe_1, 
                                    probe_2, 
-                                   calib_temperature = (probe_1 + probe_2) / 2,
+                                   calib_temperature = (probe_1 + probe_2) / 2.0,
                                    ref_temperature = ref_tmp,
                                    ref_voltage,
                                    probe_1_voltage,
@@ -271,10 +310,12 @@ read_dts_xml <- function(in_dir,
     correct_for_zig_zag,
     laser_on_length,
     ref_temp_start,
-    ref_temp_end
+    ref_temp_end,
+    fibre_length,
+    double_ended,
+    step_increment
   )
-  dts <- list(event_info = event_info,
-              dts = rbindlist(dts), 
+  dts <- list(dts = rbindlist(dts), 
               device = device,
               channels = channels)
   

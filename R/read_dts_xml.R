@@ -60,12 +60,17 @@ read_dts_zip <- function(file_path, ...) {
 #' @param n_cores number of cores to use for parallel processing
 #' @param date_format 'matlab' or 'R' format
 #' @param max_files maximum number of files to read
+#' @param return_stokes return stokes and antistokes
 #'
 #' @return dts list of results
 #' @export
 #'
 #'
-read_dts_xml <- function(in_dir, n_cores, date_format = 'R', max_files = Inf) {
+read_dts_xml <- function(in_dir, 
+                         n_cores = 1, 
+                         date_format = 'R',
+                         max_files = Inf,
+                         return_stokes = TRUE) {
   
   # get DTS files
   fn <- list.files(in_dir, full.names = TRUE, pattern = "\\.xml$")
@@ -75,9 +80,9 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R', max_files = Inf) {
     fn <- fn[1:max_files]
   }
   
-  
-  r <- XML::xmlRoot(XML::xmlParse(fn[1]))
- 
+  z <- XML::xmlParse(fn[1])
+  r <- XML::xmlRoot(z)
+
   # get DTS equipment type
   type <- get_dts_type(r)
 
@@ -139,20 +144,27 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R', max_files = Inf) {
   channels <- channels[channels2, on ='channel_number']
   
   
+  temp_file <- file.path(tempdir(), paste0(Sys.time(), '.csv'))
+  print(temp_file)
   
-  
+  XML::free(z)
+  rm(z)
+  rm(r)
   
   cl <- parallel::makePSOCKcluster(n_cores)
-  parallel::clusterExport(cl=cl, varlist = c('start_time_name', 
-                                   'end_time_name',
-                                   'log_name',
-                                   'n_skip',
-                                   'date_format'), envir=environment())
+  parallel::clusterExport(cl=cl, 
+                          varlist = c('start_time_name', 
+                                      'end_time_name',
+                                      'log_name',
+                                      'n_skip',
+                                      'date_format',
+                                      'temp_file'), envir=environment())
   
   dts <- parallel::parLapply(cl, fn, function(x){
 
     # Parse XML file
-    r <- XML::xmlRoot(XML::xmlParse(x))
+    z <- XML::xmlParse(x)
+    r <- XML::xmlRoot(z)
     
     
     # Get datetime of measurement
@@ -172,11 +184,19 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R', max_files = Inf) {
     double_ended <- as.integer(XML::getChildrenStrings(r[[log_name]][['customData']][['isDoubleEnded']]))
     
     if(double_ended){
-      select <- c(2:6)
-      nms <- c('stokes','anti_stokes', 'rev_stokes','rev_anti_stokes', 'temperature')
+      if(return_stokes) {
+        select <- c(1,6)
+      } else {
+        select <- c(1:6)
+      }
+      nms <- c('distance', 'stokes','anti_stokes', 'rev_stokes','rev_anti_stokes', 'temperature')
     } else {
-      select <- c(2:4)
-      nms <- c('stokes','anti_stokes', 'temperature')
+      if(return_stokes) {
+        select <- c(1,4)
+      } else {
+        select <- c(1:4)
+      }
+      nms <- c('distance', 'stokes','anti_stokes', 'temperature')
     }
     
     # Get reference temperatures
@@ -197,6 +217,8 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R', max_files = Inf) {
                                           addNames = FALSE,
                                           asVector = TRUE),
                   collapse = '\n')
+    
+
     text <- data.table::fread(input = text,
                               blank.lines.skip = TRUE,
                               select = select,
@@ -205,8 +227,10 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R', max_files = Inf) {
                               sep = ',',
                               nThread = 1,
                               strip.white = FALSE)
-    data.table::setnames(text, nms)
-  
+    data.table::setnames(text, nms[select])
+    data.table::set(text, j = 'start', value = start)
+    data.table::fwrite(text, temp_file, nThread = 1, append = TRUE)
+    
     
     # get metadata
     meta <- data.table::data.table(start, 
@@ -222,14 +246,19 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R', max_files = Inf) {
                                    probe_2_voltage,
                                    n_forward,
                                    n_reverse)
+    XML::free(z)
+    rm(z)
+    rm(r)
     
-    
-    return(list(trace_data = text, trace_time = meta))
+    return(meta)
   })
   
   # stop cluster
   stopCluster(cl)
 
+  # arrow::write_parquet(data.table::fread(temp_file), 
+  #                      paste0(gsub('.csv', '', temp_file), '.parquet'))
+  # 
   device <- data.table(
     configuration_name,
     measurement_interval,
@@ -245,12 +274,12 @@ read_dts_xml <- function(in_dir, n_cores, date_format = 'R', max_files = Inf) {
     ref_temp_end
   )
   dts <- list(event_info = event_info,
-              dts = dts, 
+              dts = rbindlist(dts), 
               device = device,
               channels = channels)
   
   class(dts) <- c('dts', class(dts))
-  
+  gc()
   dts
 }
 

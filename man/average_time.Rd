@@ -12,7 +12,7 @@ average_time(x, n)
 \arguments{
 \item{x}{data read from a dts}
 
-\item{n}{}
+\item{n}{size of the interval to average in seconds}
 }
 \value{
 

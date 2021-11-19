@@ -25,7 +25,8 @@ Imports:
     rmatio, 
     fasttime,
     RcppParallel,
-    bookdown
+    bookdown,
+    stringi
 LinkingTo:
     Rcpp,
     RcppArmadillo, 

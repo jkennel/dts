@@ -11,6 +11,17 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// read_file_cpp
+CharacterVector read_file_cpp(std::string path);
+RcppExport SEXP _dts_read_file_cpp(SEXP pathSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type path(pathSEXP);
+    rcpp_result_gen = Rcpp::wrap(read_file_cpp(path));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cor_by_trace
 arma::vec cor_by_trace(arma::mat x, int dim);
 RcppExport SEXP _dts_cor_by_trace(SEXP xSEXP, SEXP dimSEXP) {
@@ -76,6 +87,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_dts_read_file_cpp", (DL_FUNC) &_dts_read_file_cpp, 1},
     {"_dts_cor_by_trace", (DL_FUNC) &_dts_cor_by_trace, 2},
     {"_dts_cor_with_trace", (DL_FUNC) &_dts_cor_with_trace, 3},
     {"_dts_residual_variance_with_trace", (DL_FUNC) &_dts_residual_variance_with_trace, 3},

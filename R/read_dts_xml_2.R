@@ -62,7 +62,14 @@ read_dts_xml_2 <- function(in_dir,
   parallel::clusterExport(cl=cl, 
                           varlist = c('indices'), 
                           envir=environment())
-
+    
+    nms <- c('distance', 
+             'stokes',
+             'anti_stokes', 
+             'rev_stokes',
+             'rev_anti_stokes', 
+             'temperature')
+  
     dts <- parallel::parLapply(cl, fn, function(x) {
     b <- readLines(x, n = 30)
     
@@ -71,6 +78,7 @@ read_dts_xml_2 <- function(in_dir,
     for(ind in seq_along(indices)) {
       vals[[ind]] <- dts::get_value_xml(b[indices[[ind]]])
     }
+    names(vals) <- names(indices)
     
     # fast read 
     a <- dts::read_file_cpp(x)
@@ -89,11 +97,12 @@ read_dts_xml_2 <- function(in_dir,
         vectorize_all = FALSE),
       colClasses = rep('numeric', 6),
       sep = ',',
+      col.names = nms, 
       strip.white = FALSE,
       blank.lines.skip = TRUE)
     
     # add start time
-    data.table::set(z, j = 'start', value = vals[1])
+    data.table::set(z, j = 'start', value = fasttime::fastPOSIXct(vals[1]))
     
     # write files to disc
     if (!in_memory) {
@@ -109,13 +118,15 @@ read_dts_xml_2 <- function(in_dir,
                          col.names = FALSE)
       return(NULL)
     }
-    return(list(z, vals))
+    return(list(data = z, time_info = vals))
   })
-  
-  # stop cluster
-  parallel::stopCluster(cl)
-  
-  return(dts)
+    # stop cluster
+    parallel::stopCluster(cl)
+    
+    dts <- list(data = rbindlist(lapply(dts, '[[', 'data')),
+                time_info = rbindlist(lapply(dts, '[[', 'time_info')))
+    
+    return(dts)
 }
 
 # 

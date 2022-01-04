@@ -64,9 +64,9 @@ sample_times.dts_long <- function(x, n_traces = 100) {
     return(x)
   }
   
-  d <- d[ind, list(start)]
+  d <- d[ind, list(mid)]
   
-  x_sub <- x[['trace_data']][d, on = 'start']
+  x_sub <- x[['trace_data']][d, on = 'mid']
   
   x_sub
   

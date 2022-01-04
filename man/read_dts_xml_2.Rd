@@ -9,8 +9,10 @@ read_dts_xml_2(
   out_dir = getwd(),
   n_cores = 1,
   max_files = Inf,
-  return_stokes = TRUE,
-  in_memory = TRUE
+  return_stokes = FALSE,
+  in_memory = FALSE,
+  format = "csv",
+  trim
 )
 }
 \arguments{
@@ -23,6 +25,8 @@ read_dts_xml_2(
 \item{return_stokes}{return stokes and antistokes}
 
 \item{in_memory}{write to disk or return list of data}
+
+\item{format}{output file type, csv, parquet, ...}
 
 \item{date_format}{'matlab' or 'R' format}
 }

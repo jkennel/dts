@@ -20,14 +20,15 @@ pad_output <- function(x) {
 #' @examples
 fit_convolve <- function(x,
                          n_knots = 10, 
-                         cool_mult = 0.5) {
+                         cool_mult = 0.5,
+                         type = 'start') {
   
   # x <- copy(dts)
   # x <- average_time(x, 5)
   # subset dates
   trace_time <- get_time_table(x)
-  start_heat <- trace_time[type=='heating']$start[1]
-  start_cool <- trace_time[type=='cooling']$start[1]
+  start_heat <- trace_time[type=='heating'][[type]][1]
+  start_cool <- trace_time[type=='cooling'][[type]][1]
   di <- nrow(trace_time[type=='heating'])
   dt <- as.numeric(start_cool) - as.numeric(start_heat)
   

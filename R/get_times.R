@@ -16,7 +16,7 @@ get_times <- function(x, type = 'start', ...) UseMethod("get_times")
 get_times.dts <- function(x, type = 'start') {
   
   as.POSIXct(map_dbl(x$dts, .f = function(x, ...) {
-    x$trace_time$start
+    x$trace_time[[type]]
   }), origin = '1970-01-01', tz = 'UTC')
   
 }

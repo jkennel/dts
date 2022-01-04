@@ -14,7 +14,7 @@
 //' @export
 // [[Rcpp::export]]
 arma::vec cor_by_trace(arma::mat x, int dim) {
-  
+
   int n;
   
   if (dim == 0) {

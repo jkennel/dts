@@ -86,8 +86,6 @@ read_dts_xml <- function(in_dir,
   # get DTS equipment type
   type <- get_dts_type(r)
 
-
-  
   
   # equipment specific XML fields
   start_time_name <- get_start_time_from_type(type)

@@ -5,9 +5,9 @@
 \alias{bath_calibration.dts_long}
 \title{bath_calibration}
 \usage{
-bath_calibration(x, ...)
+bath_calibration(x, smooth = TRUE, ...)
 
-\method{bath_calibration}{dts_long}(x, ...)
+\method{bath_calibration}{dts_long}(x, smooth = TRUE, ...)
 }
 \arguments{
 \item{x}{data read from a dts}

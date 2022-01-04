@@ -4,7 +4,7 @@
 \alias{fit_convolve}
 \title{fit_convolve}
 \usage{
-fit_convolve(x, n_knots = 10, cool_mult = 0.5)
+fit_convolve(x, n_knots = 10, cool_mult = 0.5, type = "start")
 }
 \arguments{
 \item{x}{}

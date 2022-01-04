@@ -19,6 +19,8 @@ Imports:
     Rcpp (>= 0.12.18),
     XML, 
     data.table, 
+    arrow,
+    disk.frame,
     fst, 
     parallel,
     purrr, 

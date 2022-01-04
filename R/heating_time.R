@@ -24,7 +24,9 @@ heating_time <- function(x,
     mat <- to_matrix(x)
   }
   
-  bp <- time_breakpoints(mat, shift = n, type = heating_type)
+  bp <- time_breakpoints(mat,
+                         shift = n, 
+                         type = heating_type)
   
   x$trace_time[between(start, bp[1], bp[2]), type := 'heating']
   x$trace_time[start >= bp[2], type := 'cooling']

@@ -7,6 +7,7 @@
 #' @param max_files maximum number of files to read
 #' @param return_stokes return stokes and antistokes
 #' @param in_memory write to disk or return list of data
+#' @param format output file type, csv, parquet, ...
 #'
 #' @return dts list of results
 #' @export
@@ -15,15 +16,17 @@ read_dts_xml_2 <- function(in_dir,
                            out_dir = getwd(),
                            n_cores = 1, 
                            max_files = Inf,
-                           return_stokes = TRUE, 
-                           in_memory = TRUE) {
+                           return_stokes = FALSE, 
+                           in_memory = FALSE,
+                           format = 'csv', 
+                           trim) {
   
-
-
+  
+  
   # get xml file names
   fn <- list.files(in_dir, 
-                 full.names = TRUE, 
-                 pattern = '*.xml$')
+                   full.names = TRUE, 
+                   pattern = '*.xml$')
   fn <- sort(fn)
   
   
@@ -32,11 +35,6 @@ read_dts_xml_2 <- function(in_dir,
     fn <- fn[1:max_files]
   }
   
-  # overwrite existing files
-  if(!in_memory) {
-    unlink(file.path(out_dir, 'dts_data.csv'))
-    unlink(file.path(out_dir, 'dts_time_info.csv'))
-  }
   
   # parse one file to get the locations of the important text
   a <- readLines(fn[1], n = 500)
@@ -56,21 +54,58 @@ read_dts_xml_2 <- function(in_dir,
                   reference_probe_voltage_index = find_in_xml('<referenceProbeVoltage>', a)
   )
   
-  
-  # set up parallel cluster
-  cl <- parallel::makePSOCKcluster(n_cores)
-  parallel::clusterExport(cl=cl, 
-                          varlist = c('indices'), 
-                          envir=environment())
-    
-    nms <- c('distance', 
+  # return all data or just temperature
+
+    nms <- c('distance',
              'stokes',
              'anti_stokes', 
              'rev_stokes',
              'rev_anti_stokes', 
              'temperature')
+  if (return_stokes) {
+    col_indices <- 1L:6L
+  } else {
+    col_indices <- c(1L, 6L)
+  }
   
-    dts <- parallel::parLapply(cl, fn, function(x) {
+  folder_path <- file.path(out_dir, format, 'dts_data')
+  
+  
+  if(!dir.exists(folder_path)) {
+    dir.create(folder_path, recursive = TRUE)
+  }
+  
+  # overwrite existing files
+  if(!in_memory & format == 'csv') {
+    unlink(file.path(folder_path, 'dts_data.csv'))
+    unlink(file.path(folder_path, 'dts_time_info.csv'))
+    data.table::fwrite(as.list(c(nms[col_indices], 'start')), 
+                       file.path(folder_path, 'dts_data.csv'))
+    for(i in seq_along(1:n_cores)){
+      
+      data.table::fwrite(as.list(c(nms[col_indices])), file.path(folder_path, paste0(i,'_dts_data.csv')))
+    }
+  }
+  
+  
+  # set up parallel cluster
+  
+  fn_l <- split(fn, 1:n_cores)
+  
+  cl <- parallel::makePSOCKcluster(n_cores)
+  parallel::clusterExport(cl=cl, 
+                          varlist = c('indices', 
+                                      'nms', 
+                                      'folder_path', 
+                                      'col_indices',
+                                      'fn_l'), 
+                          envir=environment())
+  
+  dts <- parallel::parLapply(cl, 1:n_cores, function(i) {
+    
+    fn_sub <- fn_l[[i]]
+    
+    for (x in fn_sub) {
     b <- readLines(x, n = 30)
     
     # read in meta data for trace
@@ -80,6 +115,7 @@ read_dts_xml_2 <- function(in_dir,
     }
     names(vals) <- names(indices)
     
+    
     # fast read 
     a <- dts::read_file_cpp(x)
     
@@ -87,47 +123,170 @@ read_dts_xml_2 <- function(in_dir,
     s <- regexpr('<logData>', a, fixed =TRUE)[[1]][1] + 9
     e <- regexpr('</logData>', a, fixed =TRUE)[[1]][1]
     
+    cat(stringi::stri_replace_all_fixed(
+      substr(a, s, e),
+      pattern = c('<data uid="measurement">',
+                  '</data>'),
+      replacement = c(""),
+      vectorize_all = FALSE), file = file.path(folder_path, paste0(i, '_dts_data.csv')), append = TRUE)
     # pull out data string
-    z <- data.table::fread(
-      stringi::stri_replace_all_fixed(
-        substr(a, s, e),
-        pattern = c('<data uid="measurement">',
-                    '</data>'),
-        replacement = c(""),
-        vectorize_all = FALSE),
-      colClasses = rep('numeric', 6),
-      sep = ',',
-      col.names = nms, 
-      strip.white = FALSE,
-      blank.lines.skip = TRUE)
+    # z <- data.table::fread(
+    #   stringi::stri_replace_all_fixed(
+    #     substr(a, s, e),
+    #     pattern = c('<data uid="measurement">',
+    #                 '</data>'),
+    #     replacement = c(""),
+    #     vectorize_all = FALSE),
+    #   select = col_indices,
+    #   col.names = nms[col_indices],
+    #   sep = ',',
+    #   strip.white = FALSE,
+    #   blank.lines.skip = TRUE)
+    # 
+    # # add start time
+    # data.table::set(z, j = 'start', value = as.numeric(fasttime::fastPOSIXct(vals[1])))
     
-    # add start time
-    data.table::set(z, j = 'start', value = fasttime::fastPOSIXct(vals[1]))
-    
-    # write files to disc
-    if (!in_memory) {
-      data.table::fwrite(z,
-                         file = file.path(out_dir, 'dts_data.csv'),
-                         append = TRUE,
-                         quote = FALSE,
-                         col.names = FALSE)
-      data.table::fwrite(vals, 
-                         file = file.path(out_dir, 'dts_time_info.csv'),
-                         append = TRUE,
-                         quote = FALSE,
-                         col.names = FALSE)
-      return(NULL)
+    if(in_memory) {
+      return(z)
     }
-    return(list(data = z, time_info = vals))
+    
+    # write files to disk - make into a function
+    if(format == 'csv') {
+      
+      # data.table::fwrite(z,
+      #                    file = file.path(folder_path, paste0(i, '_dts_data.csv')),
+      #                    append = TRUE,
+      #                    quote = FALSE,
+      #                    col.names = FALSE)
+      
+    } else if (format == 'parquet'){
+      arrow::write_parquet(z,
+                           file.path(folder_path, 
+                                     paste0(gsub('.xml', '', basename(x)), '.parquet')))
+      
+    } else if (format == 'feather'){
+      arrow::write_feather(z, 
+                           file.path(folder_path, 
+                                        paste0(gsub('.xml', '', basename(x)), '.feather')))
+      
+    } else if (format == 'fst'){
+      fst::write_fst(z, 
+                     file.path(folder_path, 
+                                  paste0(gsub('.xml', '', basename(x)), ".fst")))
+      
+    } else {
+      stop('format not supported.')
+    }
+    
+    }
+    
+    return(as.list(vals))
   })
-    # stop cluster
-    parallel::stopCluster(cl)
-    
-    dts <- list(data = rbindlist(lapply(dts, '[[', 'data')),
-                time_info = rbindlist(lapply(dts, '[[', 'time_info')))
-    
-    return(dts)
+  
+  # stop cluster
+  parallel::stopCluster(cl)
+
+  if(in_memory) {
+    return(data.table::rbindlist(dts))
+  } 
+  
+  # ds <- arrow::open_dataset(folder_path, format = format)
+  # 
+  # return(list(trace_data = ds, trace_time = rbindlist(dts)))
+
+
 }
+
+
+# system.time(a <- read_dts_xml_2('/home/jonathankennel/Storage/tmp/channel 1',
+#                                 max_files = 5000,
+#                                 n_cores = 12,
+#                                 return_stokes = FALSE,
+#                                 in_memory = FALSE,
+#                                 format = 'parquet'))
+# system.time(a <- read_dts_xml_2('/home/jonathankennel/Storage/tmp/channel 1',
+#                                 max_files = 5000,
+#                                 n_cores = 12,
+#                                 return_stokes = FALSE,
+#                                 in_memory = FALSE,
+#                                 format = 'csv'))
+# system.time(a <- read_dts_xml_2('/home/jonathankennel/Storage/tmp/channel 1',
+#                                 # max_files = 5000,
+#                                 n_cores = 12,
+#                                 return_stokes = FALSE,
+#                                 in_memory = TRUE,
+#                                 format = 'csv'))
+
+# system.time(a <- read_dts_xml_2('/home/jonathankennel/Storage/tmp/channel 1',
+#                                 max_files = 5000,
+#                                 n_cores = 12,
+#                                 in_memory = FALSE,
+#                                 format = 'feather'))
+
+# system.time(a <- read_dts_xml_2('/home/jonathankennel/Storage/tmp/channel 1',
+#                                 max_files = 5000,
+#                                 n_cores = 12,
+#                                 return_stokes = FALSE,
+#                                 in_memory = FALSE,
+#                                 format = 'fst'))
+
+# tmp <- list.files('fst/dts_data/', full.names = TRUE)
+# system.time({a <- lapply(tmp, fst)})
+# system.time({b <- fread('csv/dts_data/dts_data.csv')})
+# fst(c(tmp[2]), old_format = FALSE)
+
+# system.time(ds <- arrow::open_dataset(file.path('parquet/dts_data'), format = 'parquet'))
+# system.time(ds <- arrow::read_csv_arrow('csv/dts_data/dts_data.csv',
+#                                         as_data_frame = FALSE))
+# # system.time(ds2 <- data.table::fread('csv/dts_data/dts_data.csv',
+# #                                      colClasses = c('numeric', 'numeric', 'POSIXct')))
+# system.time(ds2 <- data.table::fread('csv/dts_data/dts_data.csv',
+#                                      colClasses = c('numeric', 'numeric', 'numeric')))
+# system.time(ds2 <- duckdb::duckdb_read_csv(con, files = 'csv/dts_data/dts_data.csv', 
+#                                      name = 'test', nrow.check = 2))
+# system.time(ds <- arrow::open_dataset(file.path('feather/dts_data'), format = 'feather'))
+# 
+# system.time({
+#   
+
+
+# # z <- fread(file.path('csv/dts_data/dts_data.csv'))
+# library("DBI")
+# library('dplyr')
+# library(duckdb)
+# con = dbConnect(duckdb::duckdb(), dbdir=":memory:", read_only=FALSE)
+# arrow::to_duckdb(ds, con, table_name = 'test')
+# # system.time(a <- setDT(dbGetQuery(con, "SELECT distance, date_part('h', start) AS hour, date_part('m', start) AS min, avg(temperature) FROM test GROUP BY distance, hour, min")))
+# system.time(a <- dbGetQuery(con, "SELECT distance, start / 60 AS start, avg(temperature) AS temperature FROM test GROUP BY distance, start / 60"))
+# system.time({d <- ds2[, mean(temperature), by = list(distance, start %/% 60)]})
+# # system.time({d <- ds2[, mean(rev_anti_stokes), by = list(V1, time = as.numeric(temperature) %/% 60)]})
+# duckdb::dbDisconnect(con)
+#
+# # a <- ds |>
+# #   to_duckdb()
+
+
+
+
+# b <- ds |>
+#   select(distance) |>
+#   filter(distance < -60) |>
+#   mutate(new = 1) |>
+#   to_duckdb() |>
+#   slice_max(distance, n = 1, with_ties = FALSE)
+# 
+# tmp <- a |> 
+#   inner_join(b, by = 'distance') |>
+#   collect()
+# 
+# })
+
+# system.time({
+# con <- dbConnect(duckdb(), dbdir = 'a.db')
+# sql_string <- paste0("CREATE TABLE people AS SELECT * FROM parquet_scan('",'/home/jonathankennel/Storage/r_packages/dts/parquet/dts_data/*.parquet',"')")
+# dbExecute(con, sql_string)
+# dbDisconnect(con, shutdown = TRUE)
+# })
 
 # 
 # microbenchmark::microbenchmark(

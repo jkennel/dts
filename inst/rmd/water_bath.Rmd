@@ -1,0 +1,74 @@
+## Water bath diagnostic
+
+```{r waterbath}
+
+if (!is.na(bath_location)) {
+  
+} else {
+  # step find water bath
+  
+  dts <- find_water_bath(dts, buffer = 0.05)
+}
+
+dts <- bath_calibration(dts, smooth = TRUE)
+
+```
+
+```{r bathlocation}
+
+ggplot(get_distance_table(dts), aes(x = distance, y = as.numeric(bath))) + 
+  geom_line() + theme_bw()
+
+```
+
+```{r temperatures}
+trace_time <- melt(get_time_table(dts), id.vars = 'mid')
+trace_time_sub <- trace_time[variable %in% 
+                               c('probe_1', 
+                                 'probe_2',
+                                 'calib_temperature')]
+
+ggplot(trace_time_sub, aes(x = mid, y = value, color = variable, group = variable)) +
+  geom_line()  + 
+  xlab('') + 
+  ylab('Temperature °C') + 
+  ggtitle('Water bath probe temperatures a smoothed average for calibration') + theme_bw()
+
+
+```
+
+```{r dtsbathtemperature}
+
+dts_bath <- subset_distance(dts, by = 'bath')
+dts_mat <- to_matrix(dts_bath)
+dts_bath <- as.data.table(dts_mat)
+dts_bath <- dts_bath[, depth := rownames(dts_mat)]
+
+trace_time <- melt(dts_bath, id.vars = 'depth')
+trace_time[, variable := as.POSIXct(as.numeric(variable), origin = '1970-01-01')]
+trace_time[, depth := as.numeric(depth)]
+
+ggplot(trace_time, aes(x = variable, y = value, group = depth, color = as.factor(depth))) +
+  geom_line() + 
+  scale_color_viridis_d(alpha = 0.05) + 
+  xlab('') + 
+  ylab('Temperature °C') + 
+  ggtitle('Uncalibrated water bath temperatures from DTS along fiber optic cable')  + theme_bw() + 
+  theme(legend.position = 'none')
+
+
+```
+
+
+```{r reftemperatures}
+
+trace_time_sub <- trace_time[variable == 'reference_temperature']
+
+ggplot(trace_time_sub, aes(x = mid, y = value)) +
+  geom_line() + 
+  xlab('') + 
+  ylab('Temperature °C') + 
+  ggtitle('Reference temperature during test') + theme_bw()
+
+
+```

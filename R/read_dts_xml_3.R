@@ -187,7 +187,9 @@ read_one_xml <- function(fn) {
 #' @param max_files 
 #' @param return_stokes 
 #' @param in_memory 
+#' @param output_rds 
 #' @param trim 
+#' @param time_aggregate_interval 
 #'
 #' @return
 #' @export
@@ -199,6 +201,7 @@ read_dts_xml_3 <- function(in_dir,
                            max_files = Inf,
                            return_stokes = FALSE, 
                            in_memory = FALSE,
+                           output_rds = FALSE,
                            trim = TRUE,
                            time_aggregate_interval = 60L) {
   
@@ -335,7 +338,7 @@ read_dts_xml_3 <- function(in_dir,
     dat <- arrow::open_dataset(out_file,
                                format = 'csv') |>
       arrow::to_duckdb() |>
-      dplyr::group_by(start = floor(start / time_aggregate_interval)*
+      dplyr::group_by(start = floor(start / time_aggregate_interval) *
                         time_aggregate_interval, distance) |>
       dplyr::summarise(temperature_sd = stddev_pop(temperature),
                        temperature = mean(temperature, na.rm = TRUE)) |>
@@ -358,27 +361,42 @@ read_dts_xml_3 <- function(in_dir,
     
   }
   
+  distance <- data.table::data.table(
+    distance = meta$distance,
+    wh = meta$distance %between% c(0, meta[['device']][['fibre_length']]),
+    junction = FALSE,
+    heated = FALSE,
+    bath = FALSE,
+    reference = FALSE,
+    borehole = FALSE)
+  
+  # write output files
+  # data.table::fwrite(dts, file = file.path(folder_path, 'dts_trace.csv'))
+  # data.table::fwrite(distance, file = file.path(folder_path, 'dts_distance.csv'))
+  # data.table::fwrite(meta$device, file = file.path(folder_path, 'dts_device.csv'))
+  # data.table::fwrite(meta$channels, file = file.path(folder_path, 'dts_channels.csv'))
+  
   
   # return the results
   dts <- list(
     trace_data = dat, 
     trace_time = dts,
-    trace_distance = data.table::data.table(
-      distance = meta$distance,
-      wh = meta$distance %between% c(0, meta[['device']][['fibre_length']]),
-      junction = FALSE,
-      heated = FALSE,
-      bath = FALSE,
-      reference = FALSE,
-      borehole = FALSE),
+    trace_distance = distance,
     device = meta$device,
     channels = meta$channels,
     dir = out_dir)
   
   class(dts) <- c('dts_long', class(dts))
   
+  # write an RDS file
+  if (output_rds) {
+    saveRDS(dts, file.path(folder_path, 'dts.rds'))
+  }
+  
   return(dts)
 }
+
+
 
 # library(data.table)
 # library(arrow)
@@ -392,7 +410,8 @@ read_dts_xml_3 <- function(in_dir,
 #                                 n_cores = 14,
 #                                 return_stokes = FALSE,
 #                                 in_memory = FALSE,
-#                                 time_aggregate_interval = 30))
+#                                 time_aggregate_interval = 30,
+#                                 output_rds = TRUE))
 
 
 # system.time(a <- read_dts_xml('/home/jonathankennel/Storage/tmp/channel 1',
@@ -423,4 +442,6 @@ read_dts_xml_3 <- function(in_dir,
 #   bb <- fread('csv/dts_data/dts_data.csv')[,list(temperature_mean = mean(temperature), 
 #                                                  temperature_sd = sd(temperature)), by = list(distance, start %/% 600)]
 # )|> as.data.table()
+
+
 

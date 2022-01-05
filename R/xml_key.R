@@ -46,6 +46,7 @@ xml_key <- function() {
   #     '<probe2Voltage>',
   #     '<referenceProbeVoltage>')
   # )
+  
   xml_key <- c(
     '<minDateTimeIndex>',
     '<maxDateTimeIndex>',
@@ -58,6 +59,7 @@ xml_key <- function() {
     '<probe1Voltage>',
     '<probe2Voltage>',
     '<referenceProbeVoltage>')
+  
   names(xml_key) <- c(
     'start',
     'end', 

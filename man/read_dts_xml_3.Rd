@@ -11,6 +11,7 @@ read_dts_xml_3(
   max_files = Inf,
   return_stokes = FALSE,
   in_memory = FALSE,
+  output_rds = FALSE,
   trim = TRUE,
   time_aggregate_interval = 60L
 )
@@ -28,7 +29,11 @@ read_dts_xml_3(
 
 \item{in_memory}{}
 
+\item{output_rds}{}
+
 \item{trim}{}
+
+\item{time_aggregate_interval}{}
 }
 \value{
 

@@ -28,7 +28,10 @@ Imports:
     fasttime,
     RcppParallel,
     bookdown,
-    stringi
+    stringi,
+    duckdb,
+    tibble,
+    DBI
 LinkingTo:
     Rcpp,
     RcppArmadillo, 

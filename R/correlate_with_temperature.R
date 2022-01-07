@@ -19,7 +19,7 @@ correlate_with_temperature <- function(x,
   
   temp    <- to_matrix(x)
   r_2     <- cor_with_trace(temp, calib_t, 1)^power
-  
+
   
   # determine cutoff
   n       <- length(r_2)

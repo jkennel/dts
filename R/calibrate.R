@@ -19,20 +19,24 @@ bath_calibration.dts_long <- function(x, smooth = TRUE, ...) {
   if(smooth) {
     x$trace_time[, calib_temperature_raw := calib_temperature]
     x$trace_time[, 
-      calib_temperature := MASS::rlm(calib_temperature~splines::ns(as.numeric(mid), df = 10), dts$trace_time)$fitted.values]
+      calib_temperature := MASS::rlm(calib_temperature~splines::ns(as.numeric(start), df = 10), dts$trace_time)$fitted.values]
   }
   
   bath_distance <- x$trace_distance[bath == TRUE]$distance
 
   bath_dts <- x$trace_data[distance %in% bath_distance, 
-               list(bath_temp_dts = mean(temperature)), by = start]
+               list(bath_temperature_dts = mean(temperature)), by = start]
   
+  # tmp <- dts$trace_data[distance %between% c(5, 10)]
+  # tmp <- tmp[, list(temperature = median(temperature)), by = list(start)]
+  # plot(temperature~start, tmp, type= 'l')
   
+
   # add bath temperature
-  x$trace_time[bath_dts, bath_temp_dts := bath_temp_dts, on = 'start']
+  x$trace_time[bath_dts, bath_temperature_dts := bath_temperature_dts, on = 'start']
   
   # adjustment to apply
-  x$trace_time[, calib_adj := bath_temp_dts - calib_temperature]
+  x$trace_time[, calib_adj := bath_temperature_dts - calib_temperature]
 
   # x$trace_data[, temperature_raw := temperature]
   x$trace_data[x$trace_time, temperature := temperature - calib_adj, on = 'start']

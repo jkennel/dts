@@ -330,6 +330,8 @@ read_dts_xml_3 <- function(in_dir,
                              col.names = c(nms, 'start'), 
                              key = c('distance', 'start'),
                              colClasses = 'numeric')
+    dts[, mid := (start + end) / 2.0]
+    
   } else {
     
     # Read in the on disk file

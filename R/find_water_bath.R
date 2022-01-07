@@ -12,6 +12,7 @@ find_water_bath <- function(x, ...) {
   bath <- NULL
   
   # calculate correlation with probe temperature
+  
   calib_t <- x[["trace_time"]][["calib_temperature"]]
   
   wh <- correlate_with_temperature(x, calib_t, ...)

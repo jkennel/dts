@@ -7,7 +7,7 @@
 thermal_conductivity(x, power)
 }
 \arguments{
-\item{x}{}
+\item{x}{the slope of the temperature curve}
 
 \item{power}{the input power to the heating cable}
 }

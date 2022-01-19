@@ -18,6 +18,9 @@ heating_distance <- function(x,
   cor_sum <- 0
   cor_cutoff <- 0
   
+  if(n < 2) {
+    stop('n must be at least 2')
+  }
   if(heating_type == 'heating' | heating_type == 'both') {
     x_sub <- subset_distance(x, by = 'wh')
     heat  <- x_sub$trace_time[type == 'heating'][seq_len(n)]

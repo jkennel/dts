@@ -4,6 +4,7 @@
 #' @param start 
 #' @param end 
 #' @param heating_type 
+#' @param include_intercept 
 #'
 #' @return
 #' @export
@@ -12,19 +13,19 @@
 fit_heating_cooling <- function(x, 
                                 start_time = 0.5,
                                 end_time = 86400,
-                                heating_type = 'heating') {
+                                heating_type = 'heating',
+                                include_intercept = FALSE) {
   
-
   heat <- list()
   cool <- list()
 
   if(heating_type %in% c('heating', 'both')){
     heat <- get_time_type(x, time_type = 'heating')
-    heat <- prep_fit(heat, start_time, end_time)
+    heat <- prep_fit(heat, start_time, end_time, include_intercept)
     heat[, type := 'heating']
   } else if(heating_type %in% c('cooling', 'both')){
     cool <- get_time_type(x, time_type = 'cooling')
-    cool <- prep_fit(cool, start_time, end_time)
+    cool <- prep_fit(cool, start_time, end_time, include_intercept)
     cool[, type := 'cooling']
   }
   
@@ -32,14 +33,20 @@ fit_heating_cooling <- function(x,
   
 }
 
-prep_fit <- function(x, start_time, end_time) {
+prep_fit <- function(x, start_time, end_time, include_intercept = FALSE) {
   
   # x[, elapsed_time := as.numeric(start-start[1]), by = distance]
   x <- get_data_table(x)[between(elapsed_time, start_time, end_time)]
   
   output <- t(to_matrix(x))
   input  <- log(unique(x[['elapsed_time']]))
-  fit    <- lm(output~input)
+  
+  if(include_intercept) {
+    fit    <- lm(output~input)
+  } else {
+    output <- output - output[, 1]  # remove the first value
+    fit    <- lm(output~input - 1)  # removed intercept
+  }
   
   out <- data.table(distance = unique(x[['distance']]))
   out <- cbind(out, add_fit_columns(fit))
@@ -53,8 +60,8 @@ param_summary <- function(x) {
   
   c(r2 = x$r.squared,
     sigma = x$sigma,
-    slope = x$coefficients[2,1],
-    se_slope = x$coefficients[2,2]
+    slope = x$coefficients[1,1],
+    se_slope = x$coefficients[1,2]
     )
   
 }

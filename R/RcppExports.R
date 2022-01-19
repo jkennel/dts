@@ -17,7 +17,7 @@ read_file_cpp <- function(path) {
 #' 
 #' 
 #' @param x
-#' @param dim
+#' @param dim if 0 then it is by column
 #' 
 #' @examples
 #' 

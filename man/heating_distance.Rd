@@ -4,12 +4,20 @@
 \alias{heating_distance}
 \title{heating_distance}
 \usage{
-heating_distance(x, n = 50, heating_type = "both")
+heating_distance(
+  x,
+  n = 10,
+  temperature_change = 0.5,
+  power = 5,
+  heating_type = "both"
+)
 }
 \arguments{
 \item{x}{}
 
-\item{n}{}
+\item{n}{number of points after heating starts}
+
+\item{temperature_change}{temperature change required to include.}
 
 \item{heating_type}{}
 }

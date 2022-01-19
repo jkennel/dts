@@ -8,13 +8,16 @@ fit_heating_cooling(
   x,
   start_time = 0.5,
   end_time = 86400,
-  heating_type = "heating"
+  heating_type = "heating",
+  include_intercept = FALSE
 )
 }
 \arguments{
 \item{x}{}
 
 \item{heating_type}{}
+
+\item{include_intercept}{}
 
 \item{start}{}
 

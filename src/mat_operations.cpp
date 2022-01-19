@@ -7,7 +7,7 @@
 //' 
 //' 
 //' @param x
-//' @param dim
+//' @param dim if 0 then it is by column
 //' 
 //' @examples
 //' 

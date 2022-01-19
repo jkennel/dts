@@ -7,7 +7,7 @@
 cor_by_trace(x, dim)
 }
 \arguments{
-\item{dim}{}
+\item{dim}{if 0 then it is by column}
 }
 \description{
 correlation for dts matrix by row or by column

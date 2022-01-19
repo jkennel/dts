@@ -19,7 +19,7 @@ bath_calibration.dts_long <- function(x, smooth = TRUE, ...) {
   if(smooth) {
     x$trace_time[, calib_temperature_raw := calib_temperature]
     x$trace_time[, 
-      calib_temperature := MASS::rlm(calib_temperature~splines::ns(as.numeric(start), df = 10), dts$trace_time)$fitted.values]
+      calib_temperature := MASS::rlm(calib_temperature~splines::ns(as.numeric(start), df = 10), x$trace_time)$fitted.values]
   }
   
   bath_distance <- x$trace_distance[bath == TRUE]$distance

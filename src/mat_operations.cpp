@@ -181,6 +181,8 @@ arma::mat solve_arma(const arma::mat x, const arma::mat y) {
   
 }
 
+
+
 // //' @title Sum the difference between dts matrix by row or by column
 // //' 
 // //' 

@@ -14,14 +14,16 @@ heating_time <- function(x,
                          heating_type = 'both', 
                          distance_range = NULL) {
   
-  x$trace_time[, type := 'ambient']
+  x_sub <- subset_distance(x, by = 'wh')
+  
+  x_sub$trace_time[, type := 'ambient']
   
   if(!is.null(distance_range)) {
-    mat <- to_matrix(subset_distance(x,
+    mat <- to_matrix(subset_distance(x_sub,
                                      begin = distance_range[1], 
                                      end = distance_range[2]))
   } else {
-    mat <- to_matrix(x)
+    mat <- to_matrix(x_sub)
   }
   
   bp <- time_breakpoints(mat,

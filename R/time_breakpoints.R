@@ -28,7 +28,7 @@ time_breakpoints.default <- function(x,
 #' @rdname time_breakpoints
 #' @export
 time_breakpoints.matrix <- function(x, 
-                                    shift = -10, 
+                                    shift = -5, 
                                     col_name = 'temperature',
                                     type = 'both') {
 

@@ -16,11 +16,11 @@ time_breakpoints <- function(x, shift, col_name, type) UseMethod("time_breakpoin
 #' @rdname time_breakpoints
 #' @export
 time_breakpoints.default <- function(x, 
-                                     shift = -10,
+                                     shift = -1,
                                      col_name = 'temperature',
                                      type = 'both') {
   
-  time_breakpoints(to_matrix(x, col_name = col_name), shift)
+  time_breakpoints(to_matrix(x, col_name = col_name), shift = shift)
   
 }
 
@@ -28,7 +28,7 @@ time_breakpoints.default <- function(x,
 #' @rdname time_breakpoints
 #' @export
 time_breakpoints.matrix <- function(x, 
-                                    shift = -5, 
+                                    shift = -1, 
                                     col_name = 'temperature',
                                     type = 'both') {
 
@@ -36,10 +36,29 @@ time_breakpoints.matrix <- function(x,
   rn <- as.POSIXct(as.numeric(colnames(x)), origin = '1970-01-01', tz = 'UTC')
   
   if(type == 'heating') {
-    return(list(on  = rn[which.min(by_time)], 
+    sd_cut <- -sd(by_time) * 2
+    ind_min <- which.min(by_time)
+    ind_before <- pmax(ind_min - 1, 1) 
+    
+    if(by_time[ind_before] < sd_cut & ind_before > abs(shift)) {
+      on <- rn[ind_before]
+    } else {
+      on <- rn[ind_min]
+    }
+    
+    return(list(on  = on, 
                 off = max(rn) + 1.0))
   } else if (type == 'both') {
-    return(list(on  = rn[which.min(by_time)], 
+    sd_cut <- -sd(by_time) * 2
+    ind_min <- which.min(by_time)
+    ind_before <- pmax(ind_min-1, 1) 
+    
+    if(by_time[ind_before] < sd_cut & ind_before > abs(shift)) {
+      on <- rn[ind_before]
+    } else {
+      on <- rn[ind_min]
+    }
+    return(list(on  = on, 
                 off = rn[which.max(by_time)]))
   } else if (type == 'cooling') {
     return(list(on  = min(rn) - 1.0, 

@@ -10,7 +10,7 @@
 #'
 #' @examples
 heating_time <- function(x, 
-                         n = -10, 
+                         n = -1, 
                          heating_type = 'both', 
                          distance_range = NULL) {
   

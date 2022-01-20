@@ -142,12 +142,18 @@ read_one_xml <- function(fn) {
                                          addNames = FALSE,
                                          asVector = TRUE),
                  collapse = '\n')
-  
+
+  if(type == 'xt') {
+    skip <- 1
+  } else {
+    skip <- 0
+  }
   text <- data.table::fread(input = text,
                             blank.lines.skip = TRUE,
                             select = 1,
                             sep = ',',
                             nThread = 1,
+                            skip = skip,
                             strip.white = FALSE)[[1]]
   
   XML::free(z)
@@ -156,6 +162,7 @@ read_one_xml <- function(fn) {
   
   # return data.table with values
   device <- data.table::data.table(
+    type,
     configuration_name,
     measurement_interval,
     # laser_frequency,
@@ -219,6 +226,12 @@ read_dts_xml_3 <- function(in_dir,
   
   # get the constant meta data from the first XML file  
   meta <- read_one_xml(fn[1])
+  type <- meta$device$type
+  if(type == 'xt') {
+    data_pattern <- c('<data>\n', '</data>\n')
+  } else {
+    data_pattern <- c('<data uid="measurement">', '</data>')
+  }
   
   
   # set column names
@@ -241,17 +254,16 @@ read_dts_xml_3 <- function(in_dir,
   
   
   # the maximum number of lines in the header
-  header_sub <- readLines(fn[1], n = 500)
+  if(type == 'xt') {
+    header_sub <- readLines(fn[1])
+  } else {
+    header_sub <- readLines(fn[1], 30)
+  }
   
   
   # find the indices of certain components 
   # this speeds up
-  keys <- xml_key()
-  indices <- vapply(keys, 
-                    FUN = find_in_xml, 
-                    FUN.VALUE = 0L, 
-                    USE.NAMES = TRUE,
-                    search_string = header_sub)
+  keys <- xml_key(type)
   
   # path for the output
   folder_path <- file.path(out_dir, 'dts_data')
@@ -266,44 +278,54 @@ read_dts_xml_3 <- function(in_dir,
   
   # write the new file with header
   data.table::fwrite(as.list(c(nms, 'start')), out_file)
-  
+
   # set up parallel cluster
   cl <- parallel::makePSOCKcluster(n_cores)
   parallel::clusterExport(cl = cl, 
                           varlist = c('indices',
-                                      'select'), 
+                                      'select',
+                                      'type',
+                                      'keys',
+                                      'data_pattern'), 
                           envir = environment())
   
   dts <- parallel::parLapply(cl, fn, function(x) {
-    
-    b <- readLines(x, n = 30)
-    
-    # read in meta data for trace
-    vals <- vector(mode = "list", length = length(indices))
-    for(ind in seq_along(indices)) {
-      if(ind > 2) {
-        vals[[ind]] <- as.numeric(dts::get_value_xml(b[indices[[ind]]]))
-      } else {
-        vals[[ind]] <- as.numeric(fasttime::fastPOSIXct(dts::get_value_xml(b[indices[[ind]]])))
-      }
-    }
-    names(vals) <- names(indices)
     
     # fast read 
     a <- dts::read_file_cpp(x)
     
     # find the start and end of the data
-    s <- regexpr('<logData>', a, fixed =TRUE)[[1]][1] + 9
-    e <- regexpr('</logData>', a, fixed =TRUE)[[1]][1] - 1
+    if(type == 'xt') {
+      s <- regexpr('<data>', a, fixed = TRUE)[[1]][1] + 6
+      e <- regexpr('</logData>', a, fixed = TRUE)[[1]][1] - 1
+      ef <- nchar(a)
+      top <- substr(a, 500, s-200)
+      bot <- substr(a, e + 20, e + 1000)
+      
+      vals <- as.list(c(as.numeric(fasttime::fastPOSIXct(stringi::stri_match_first_regex(top, keys$pattern[1:2])[,2])),
+                as.numeric(stringi::stri_match_first_regex(bot, keys$pattern[3:11])[,2])))
+      names(vals) <- keys$names
+    } else {
+      s <- regexpr('<logData>', a, fixed = TRUE)[[1]][1] + 9
+      e <- regexpr('</logData>', a, fixed = TRUE)[[1]][1] - 1
+      top <- substr(a, 200, s-2000)
+      vals <- stringi::stri_match_first_regex(top, keys$pattern)[,2]
+      vals <- as.list(c(as.numeric(fasttime::fastPOSIXct(vals[1:2])), 
+        as.numeric(vals[3:11])))
+      names(vals) <- keys$names
+    }
+    
+    
+    
     
     dat <- data.table::fread(stringi::stri_replace_all_fixed(
       substr(a, s, e),
-      pattern = c('<data uid="measurement">',
-                  '</data>'),
+      pattern = data_pattern,
       replacement = c(""),
       vectorize_all = FALSE),
       select = select, 
       colClasses = 'numeric',
+      blank.lines.skip = TRUE,
       nThread = 1)
     
     # add start time
@@ -323,7 +345,7 @@ read_dts_xml_3 <- function(in_dir,
   parallel::stopCluster(cl)
   
   dts <- data.table::rbindlist(dts)
-  dts[, calib_temperature := (probe_1 + probe_2)/2]
+  dts[, calib_temperature := (probe_1 + probe_2) / 2.0]
   
   if (in_memory) {
     dat <- data.table::fread(out_file, 

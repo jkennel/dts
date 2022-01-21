@@ -4,7 +4,7 @@
 \alias{xml_key}
 \title{xml_key}
 \usage{
-xml_key()
+xml_key(type)
 }
 \value{
 

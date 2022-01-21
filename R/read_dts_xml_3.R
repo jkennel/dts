@@ -142,7 +142,7 @@ read_one_xml <- function(fn) {
                                          addNames = FALSE,
                                          asVector = TRUE),
                  collapse = '\n')
-
+  
   if(type == 'xt') {
     skip <- 1
   } else {
@@ -213,19 +213,20 @@ read_dts_xml_3 <- function(in_dir,
                            time_aggregate_interval = 60L) {
   
   
-  # get and sort xml file names by time
+  # get, subset, and sort xml file names
   fn <- list.files(in_dir, 
-                   full.names = TRUE, 
+                   full.names = FALSE, 
                    pattern = '*.xml$')
-  fn <- sort(fn)
   
+  fn <- sort(fn, method = 'radix')[1:pmin(length(fn), max_files)]
   
-  # only read some of the files?
-  fn <- fn[1:pmin(length(fn), max_files)]
-  
+  fn <- file.path(in_dir, fn)
+
   
   # get the constant meta data from the first XML file  
   meta <- read_one_xml(fn[1])
+  
+  
   type <- meta$device$type
   if(type == 'xt') {
     data_pattern <- c('<data>\n', '</data>\n')
@@ -253,16 +254,7 @@ read_dts_xml_3 <- function(in_dir,
   }
   
   
-  # the maximum number of lines in the header
-  if(type == 'xt') {
-    header_sub <- readLines(fn[1])
-  } else {
-    header_sub <- readLines(fn[1], 30)
-  }
-  
-  
-  # find the indices of certain components 
-  # this speeds up
+  # strings to find in xml
   keys <- xml_key(type)
   
   # path for the output
@@ -278,7 +270,7 @@ read_dts_xml_3 <- function(in_dir,
   
   # write the new file with header
   data.table::fwrite(as.list(c(nms, 'start')), out_file)
-
+  
   # set up parallel cluster
   cl <- parallel::makePSOCKcluster(n_cores)
   parallel::clusterExport(cl = cl, 
@@ -294,31 +286,30 @@ read_dts_xml_3 <- function(in_dir,
     # fast read 
     a <- dts::read_file_cpp(x)
     
+
     # find the start and end of the data
     if(type == 'xt') {
-      s <- regexpr('<data>', a, fixed = TRUE)[[1]][1] + 6
-      e <- regexpr('</logData>', a, fixed = TRUE)[[1]][1] - 1
-      ef <- nchar(a)
-      top <- substr(a, 500, s-200)
-      bot <- substr(a, e + 20, e + 1000)
+      s <- regexpr('<data>', a, fixed = TRUE)[[1]][1] + 6L
+      e <- regexpr('</logData>', a, fixed = TRUE)[[1]][1] - 1L
+      top <- substr(a, 500L, s - 200L)
+      bot <- substr(a, e + 20L, e + 1000L)
       
-      vals <- as.list(c(as.numeric(fasttime::fastPOSIXct(stringi::stri_match_first_regex(top, keys$pattern[1:2])[,2])),
-                as.numeric(stringi::stri_match_first_regex(bot, keys$pattern[3:11])[,2])))
+      vals <- as.list(c(as.numeric(fastPOSIXct(stri_match_first_regex(top, keys$pattern[1:2])[,2])),
+                        as.numeric(stri_match_first_regex(bot, keys$pattern[3:11])[,2])))
+      
       names(vals) <- keys$names
+      
     } else {
-      s <- regexpr('<logData>', a, fixed = TRUE)[[1]][1] + 9
-      e <- regexpr('</logData>', a, fixed = TRUE)[[1]][1] - 1
-      top <- substr(a, 200, s-2000)
-      vals <- stringi::stri_match_first_regex(top, keys$pattern)[,2]
-      vals <- as.list(c(as.numeric(fasttime::fastPOSIXct(vals[1:2])), 
-        as.numeric(vals[3:11])))
+      s <- regexpr('<logData>', a, fixed = TRUE)[[1]][1] + 9L
+      e <- regexpr('</logData>', a, fixed = TRUE)[[1]][1] - 1L
+      top <- substr(a, 350L, 1200L)
+      vals <- stri_match_first_regex(top, keys$pattern)[,2]
+      vals <- as.list(c(as.numeric(fastPOSIXct(vals[1:2])), 
+                        as.numeric(vals[3:11])))
       names(vals) <- keys$names
     }
-    
-    
-    
-    
-    dat <- data.table::fread(stringi::stri_replace_all_fixed(
+      
+    dat <- data.table::fread(stri_replace_all_fixed(
       substr(a, s, e),
       pattern = data_pattern,
       replacement = c(""),
@@ -330,7 +321,7 @@ read_dts_xml_3 <- function(in_dir,
     
     # add start time
     data.table::set(dat, j = 'start', value = vals[1])
-    
+      
     data.table::fwrite(dat,
                        file = file.path(folder_path, 'dts_data.csv'),
                        append = TRUE,
@@ -345,14 +336,23 @@ read_dts_xml_3 <- function(in_dir,
   parallel::stopCluster(cl)
   
   dts <- data.table::rbindlist(dts)
-  dts[, calib_temperature := (probe_1 + probe_2) / 2.0]
-  
+  set(dts, 
+      j = 'calib_temperature', 
+      value = (dts[['probe_1']] + dts[['probe_2']]) / 2.0)
+
   if (in_memory) {
-    dat <- data.table::fread(out_file, 
-                             col.names = c(nms, 'start'), 
-                             key = c('distance', 'start'),
+    dat <- data.table::fread(file = out_file, 
+                             col.names = c(nms, 'start'),
                              colClasses = 'numeric')
+                             
+    
+    dat[, start := anytime(start, tz = 'UTC')]
+    setkey(dat, start, distance)
+    
     dts[, mid := (start + end) / 2.0]
+    dts[, start := anytime(start, tz = 'UTC')]
+    dts[, mid := anytime(mid, tz = 'UTC')]
+    dts[, end := anytime(end, tz = 'UTC')]
     
   } else {
     
@@ -372,33 +372,28 @@ read_dts_xml_3 <- function(in_dir,
     
     # data.table aggregation method
     dts <- dts[, lapply(.SD, mean, na.rm = TRUE),
-               by = list(start = as.POSIXct(
+               by = list(start = anytime(
                  as.integer(start %/% time_aggregate_interval) *
-                   time_aggregate_interval,
-                 origin = '1970-01-01'))]
+                   time_aggregate_interval, tz = 'UTC'))]
     
     dts[, mid := start + time_aggregate_interval / 2.0]
     dts[, end := start + time_aggregate_interval]
-    setkey(dts, start)
     
-    dat[, start := as.POSIXct(start, origin = '1970-01-01')]
+    dat[, start := anytime(start, tz = 'UTC')]
     
   }
   
+  setkey(dts, start)
+  
+  # distance table
   distance <- data.table::data.table(
     distance = meta$distance,
-    wh = meta$distance %between% c(0, meta[['device']][['fibre_length']]),
+    wh = meta$distance %between% c(0.0, meta[['device']][['fibre_length']]),
     junction = FALSE,
     heated = FALSE,
     bath = FALSE,
     reference = FALSE,
     borehole = FALSE)
-  
-  # write output files
-  # data.table::fwrite(dts, file = file.path(folder_path, 'dts_trace.csv'))
-  # data.table::fwrite(distance, file = file.path(folder_path, 'dts_distance.csv'))
-  # data.table::fwrite(meta$device, file = file.path(folder_path, 'dts_device.csv'))
-  # data.table::fwrite(meta$channels, file = file.path(folder_path, 'dts_channels.csv'))
   
   
   # return the results

@@ -4,7 +4,7 @@
 \alias{heating_time}
 \title{heating_time}
 \usage{
-heating_time(x, n = -10, heating_type = "both", distance_range = NULL)
+heating_time(x, n = -1, heating_type = "both", distance_range = NULL)
 }
 \arguments{
 \item{x}{the DTS dataset}

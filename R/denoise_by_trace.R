@@ -100,29 +100,29 @@ denoise_by_trace_2 <- function(x) {
     half[i, ] <- c(0,a) - c(0,predict(lm(a~a1+a2)))
   }
   
-  x$trace_data[, temperature := as.numeric(half)]
-  x
-  
-  p <- plot_ly(z = half[,rng],
-
-               colors = viridis(100),
-               type = "heatmap") |>
-    layout(yaxis = list(autorange="reversed"))
-    # colorbar(limits = c(7.5, 8.))
-  p
-
-i <- 300
-  a <- diff(mat[i,])
-  a1 <- diff(mat[i-1,])
-  a2 <- diff(mat[i+1,])
-  
-  plot(a[rng], type = 'l')
-  grid()
-  points(a1[rng], type = 'l', col = '#00009090')
-  points(a2[rng], type = 'l', col = '#00009090')
-  # points(a2, type = 'l', col = '#90009090')
-  # points(a3, type = 'l', col = '#90009090')
-  points(a-(a1+a2)*0.5, type = 'l',lwd = 2, col = '#009000')
+#   x$trace_data[, temperature := as.numeric(half)]
+#   x
+#   
+#   p <- plot_ly(z = half[,rng],
+# 
+#                colors = viridis(100),
+#                type = "heatmap") |>
+#     layout(yaxis = list(autorange="reversed"))
+#     # colorbar(limits = c(7.5, 8.))
+#   p
+# 
+# i <- 300
+#   a <- diff(mat[i,])
+#   a1 <- diff(mat[i-1,])
+#   a2 <- diff(mat[i+1,])
+#   
+#   plot(a[rng], type = 'l')
+#   grid()
+#   points(a1[rng], type = 'l', col = '#00009090')
+#   points(a2[rng], type = 'l', col = '#00009090')
+#   # points(a2, type = 'l', col = '#90009090')
+#   # points(a3, type = 'l', col = '#90009090')
+#   points(a-(a1+a2)*0.5, type = 'l',lwd = 2, col = '#009000')
 
   # plot()
   # diff(range(mat[n,rng]))

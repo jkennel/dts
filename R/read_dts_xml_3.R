@@ -291,8 +291,8 @@ read_dts_xml_3 <- function(in_dir,
     if(type == 'xt') {
       s <- regexpr('<data>', a, fixed = TRUE)[[1]][1] + 6L
       e <- regexpr('</logData>', a, fixed = TRUE)[[1]][1] - 1L
-      top <- substr(a, 500L, s - 200L)
-      bot <- substr(a, e + 20L, e + 1000L)
+      top <- substr(a, 500L, 800L)
+      bot <- substr(a, e + 20L, e + 900L)
       
       vals <- as.list(c(as.numeric(fastPOSIXct(stri_match_first_regex(top, keys$pattern[1:2])[,2])),
                         as.numeric(stri_match_first_regex(bot, keys$pattern[3:11])[,2])))

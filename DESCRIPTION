@@ -20,7 +20,6 @@ Imports:
     XML, 
     data.table, 
     arrow,
-    disk.frame,
     fst, 
     parallel,
     purrr, 
@@ -31,7 +30,6 @@ Imports:
     bookdown,
     stringi,
     duckdb,
-    tibble,
     DBI
 LinkingTo:
     Rcpp,

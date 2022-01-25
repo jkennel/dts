@@ -221,7 +221,7 @@ read_dts_xml_3 <- function(in_dir,
   fn <- sort(fn, method = 'radix')[1:pmin(length(fn), max_files)]
   
   fn <- file.path(in_dir, fn)
-
+  
   
   # get the constant meta data from the first XML file  
   meta <- read_one_xml(fn[1])
@@ -269,48 +269,49 @@ read_dts_xml_3 <- function(in_dir,
   unlink(out_file)
   
   # write the new file with header
-  data.table::fwrite(as.list(c(nms, 'start')), out_file)
+  fwrite(as.list(c(nms, 'start')), out_file)
   
   # set up parallel cluster
   cl <- parallel::makePSOCKcluster(n_cores)
   parallel::clusterExport(cl = cl, 
-                          varlist = c('indices',
-                                      'select',
-                                      'type',
-                                      'keys',
-                                      'data_pattern'), 
+                          varlist = c(
+                            'folder_path',
+                            'select',
+                            'type',
+                            'keys',
+                            'data_pattern'), 
                           envir = environment())
   
   dts <- parallel::parLapply(cl, fn, function(x) {
     
-    # fast read 
-    a <- dts::read_file_cpp(x)
     
-
-    # find the start and end of the data
+    # Fast read 
+    xml_text <- dts::read_file_cpp(x)
+    
+    # Find the start and end of the data
     if(type == 'xt') {
-      s <- regexpr('<data>', a, fixed = TRUE)[[1]][1] + 6L
-      e <- regexpr('</logData>', a, fixed = TRUE)[[1]][1] - 1L
-      top <- substr(a, 500L, 800L)
-      bot <- substr(a, e + 20L, e + 900L)
+      s <- regexpr('<data>', xml_text, fixed = TRUE)[[1]][1] + 6L
+      e <- regexpr('</logData>', xml_text, fixed = TRUE)[[1]][1] - 1L
+      bot <- substr(xml_text, e, e + 900L)
       
-      vals <- as.list(c(as.numeric(fastPOSIXct(stri_match_first_regex(top, keys$pattern[1:2])[,2])),
-                        as.numeric(stri_match_first_regex(bot, keys$pattern[3:11])[,2])))
-      
-      names(vals) <- keys$names
+      vals <- as.list(c(
+        as.numeric(fastPOSIXct(stri_match_first_regex(xml_text, keys$pattern[1:2])[, 2])),
+        as.numeric(stri_match_first_regex(bot, keys$pattern[3:11])[, 2])))
       
     } else {
-      s <- regexpr('<logData>', a, fixed = TRUE)[[1]][1] + 9L
-      e <- regexpr('</logData>', a, fixed = TRUE)[[1]][1] - 1L
-      top <- substr(a, 350L, 1200L)
-      vals <- stri_match_first_regex(top, keys$pattern)[,2]
-      vals <- as.list(c(as.numeric(fastPOSIXct(vals[1:2])), 
-                        as.numeric(vals[3:11])))
-      names(vals) <- keys$names
-    }
+      s <- regexpr('<logData>', xml_text, fixed = TRUE)[[1]][1] + 9L
+      e <- regexpr('</logData>', xml_text, fixed = TRUE)[[1]][1] - 1L
       
-    dat <- data.table::fread(stri_replace_all_fixed(
-      substr(a, s, e),
+      vals <- stri_match_first_regex(xml_text, keys$pattern)[, 2]
+      vals <- as.list(c(
+        as.numeric(fastPOSIXct(vals[1:2])), 
+        as.numeric(vals[3:11])))
+    }
+    
+    
+    # Read in the data
+    dat <- fread(stri_replace_all_fixed(
+      substr(xml_text, s, e),
       pattern = data_pattern,
       replacement = c(""),
       vectorize_all = FALSE),
@@ -319,15 +320,17 @@ read_dts_xml_3 <- function(in_dir,
       blank.lines.skip = TRUE,
       nThread = 1)
     
-    # add start time
-    data.table::set(dat, j = 'start', value = vals[1])
-      
-    data.table::fwrite(dat,
-                       file = file.path(folder_path, 'dts_data.csv'),
-                       append = TRUE,
-                       quote = FALSE,
-                       col.names = FALSE,
-                       nThread = 1)
+    # Add start time
+    set(dat, j = 'start', value = vals[[1]])
+    
+    
+    # Write data to file in append mode
+    fwrite(dat,
+           file = file.path(folder_path, 'dts_data.csv'),
+           append = TRUE,
+           quote = FALSE,
+           col.names = FALSE,
+           nThread = 1)
     
     setDT(vals)
   })
@@ -335,16 +338,18 @@ read_dts_xml_3 <- function(in_dir,
   # stop cluster
   parallel::stopCluster(cl)
   
-  dts <- data.table::rbindlist(dts)
+  dts <- rbindlist(dts)
+  setnames(dts, keys$names)
+  
   set(dts, 
       j = 'calib_temperature', 
       value = (dts[['probe_1']] + dts[['probe_2']]) / 2.0)
-
+  
   if (in_memory) {
-    dat <- data.table::fread(file = out_file, 
-                             col.names = c(nms, 'start'),
-                             colClasses = 'numeric')
-                             
+    dat <- fread(file = out_file, 
+                 col.names = c(nms, 'start'),
+                 colClasses = 'numeric')
+    
     
     dat[, start := anytime(start, tz = 'UTC')]
     setkey(dat, start, distance)
@@ -386,7 +391,7 @@ read_dts_xml_3 <- function(in_dir,
   setkey(dts, start)
   
   # distance table
-  distance <- data.table::data.table(
+  distance <- data.table(
     distance = meta$distance,
     wh = meta$distance %between% c(0.0, meta[['device']][['fibre_length']]),
     junction = FALSE,
@@ -415,52 +420,6 @@ read_dts_xml_3 <- function(in_dir,
   return(dts)
 }
 
-
-
-# library(data.table)
-# library(arrow)
-# library(dplyr)
-# library(tibble)
-# library(duckdb)
-# 
-# 
-# system.time(a <- read_dts_xml_3('/home/jonathankennel/Storage/tmp/channel 1',
-#                                 max_files = 1000,
-#                                 n_cores = 14,
-#                                 return_stokes = FALSE,
-#                                 in_memory = FALSE,
-#                                 time_aggregate_interval = 30,
-#                                 output_rds = TRUE))
-
-
-# system.time(a <- read_dts_xml('/home/jonathankennel/Storage/tmp/channel 1',
-#                                 max_files = 14000,
-#                                 n_cores = 14,
-#                                 return_stokes = FALSE))
-# fn <- list.files('/home/jonathankennel/Storage/r_packages/dts/csv/dts_data', full.names = TRUE)
-# system.time({
-#   a <- fread(fn[1])
-#   set(a, j = 'start', value = rep(as.POSIXct('1020-01-01', tz = 'UTC'), nrow(a)))
-# })
-
-# library(arrow)
-# library(duckdb)
-# library(dplyr)
-# bench::mark(
-# bb <- open_dataset('dts_data/dts_data.csv',
-#                    format = 'csv') |>
-#   to_duckdb() |>
-#   group_by(start = floor(start / 120), distance) |>
-#   summarise(temperature_sd = stddev_pop(temperature),
-#             temperature = mean(temperature)) |>
-#   collect()
-# ) |> as.data.table()
-# 
-# 
-# bench::mark(
-#   bb <- fread('csv/dts_data/dts_data.csv')[,list(temperature_mean = mean(temperature), 
-#                                                  temperature_sd = sd(temperature)), by = list(distance, start %/% 600)]
-# )|> as.data.table()
 
 
 

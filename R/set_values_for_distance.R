@@ -11,11 +11,11 @@
 #' @export
 #'
 set_values_for_distance <- function(x,
-                                variable_name, 
-                                begin, 
-                                end, 
-                                specific_depths = NA_real_,
-                                set_to = TRUE) {
+                                    variable_name, 
+                                    begin, 
+                                    end, 
+                                    specific_depths = NA_real_,
+                                    set_to = TRUE) {
   
   if(!variable_name %in% names(x$trace_distance)) {
     x$trace_distance[, (variable_name) := NA]

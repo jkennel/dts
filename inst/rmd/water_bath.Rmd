@@ -2,16 +2,11 @@
 
 ```{r waterbath}
 
-print(class(bath_location))
-if (bath_location == 'NA') {
-  print(class(bath_location))
-  # dts <- set_values_for_distance(dts, 
-  #                         variable_name = 'bath',
-  #                         begin = bath_location[1],
-  #                         end = bath_location[2])
-} else {
+if (bath_distance == 'NA') {
   # step find water bath
   dts <- find_water_bath(dts, buffer = 0.1)
+} else {
+  dts <- set_values_for_distance(dts, 'bath', bath_distance[1], bath_distance[2])
 }
 
 dts <- bath_calibration(dts, smooth = TRUE)

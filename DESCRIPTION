@@ -1,4 +1,4 @@
-Package: dtscloned
+Package: dts
 Type: Package
 Title: The reading, writing and analysis of distributed temperature sensing data
 Version: 0.0.1

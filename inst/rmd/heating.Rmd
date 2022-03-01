@@ -5,7 +5,7 @@
 if (heating_times == 'NA') {
   # step find heating_times
   dts <- heating_time(dts,
-                      heating_type = 'heating')
+                      heating_type = 'both')
 } else {
   dts <- set_values_for_time(dts, 
                              variable_name = 'type', 
@@ -14,8 +14,8 @@ if (heating_times == 'NA') {
                              set_to = 'heating')
 }
 
-s_t <- min(get_time_table(dts)[heated == TRUE]$start)
-e_t <- max(get_time_table(dts)[heated == TRUE]$start)
+s_t <- min(get_time_table(dts)[type == 'heating']$start)
+e_t <- max(get_time_table(dts)[type == 'heating']$start)
 ```
 
 

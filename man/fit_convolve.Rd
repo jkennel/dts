@@ -7,16 +7,16 @@
 fit_convolve(x, cool_mult = 0.5, time_var = "start", n_knots = NULL)
 }
 \arguments{
-\item{x}{}
+\item{x}{the dts object}
 
-\item{cool_mult}{}
+\item{cool_mult}{currently not used}
 
-\item{time_var}{}
+\item{time_var}{column name of the that contains the date time info}
 
-\item{n_knots}{}
+\item{n_knots}{number late time knots in lag model - generally keep small}
 }
 \value{
-
+table of slopes and responses
 }
 \description{
 fit_convolve

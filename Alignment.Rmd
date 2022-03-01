@@ -1,0 +1,109 @@
+---
+title: "Alignment of DTS (GDC-5 Example)"
+author: "Jonathan Kennel, Jonathan Munn, Carlos Maldaner, Mitchell Brown, Beth Parker"
+date: "03/02/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dts)
+library(arrow)
+library(dplyr)
+library(tibble)
+library(duckdb)
+library(data.table)
+library(plotly)
+library(viridis)
+```
+
+
+
+# Can we use both ends of the fibre optic datasets?
+
+We will apply this to the GDC-05 log where the cable has a termination splice at the bottom of the borehole.
+
+First a portion of one side (template) of the data is matched with the other side. There are many ways to do this check but perhaps the simplest is to just subtract the template from the data in a sliding manner.  Then we calculate the sum squared differences. This is a portion of the template at two different times.
+
+```{r template, echo = FALSE, message=FALSE, warning=FALSE}
+input <- '/media/jonathankennel/Seagate Expansion Drive/dts/gdc_05_2015-11-02/2015-11-02 Active DTS Test GDC-05 7_5 W per m'
+# step read files
+x <- read_dts_xml_3(input,
+                      n_cores = 14, 
+                      max_files = Inf,
+                      return_stokes = FALSE,
+                      in_memory = FALSE,
+                      time_aggregate_interval = 30)
+
+
+
+probs = c(0.05, 0.15)
+
+d <- get_distance_table(x)
+m <- to_matrix(x)
+
+wh <- which(d$distance > 0)
+n  <- length(wh)
+
+greater_than_zero <- wh[1]
+
+rng <- round(quantile(wh, probs = probs))
+ind <- rng[1]:rng[2]
+n_ind <- length(ind)
+j <- 1
+d[, align_res := NA_real_]
+for(i in nrow(m):max(rng)) {
+  ind_check <- i:(i - n_ind + 1)
+  d[i, align_res := sum((m[ind_check,] - m[ind,])^2)]
+}
+match_ind <- which.min(d$align_res)
+
+temp <- data.table(distance = rep(d[ind][['distance']], 2), 
+                   temperature = c(m[ind, 1],
+                                   m[ind, 500]), 
+                   time = rep(c("time = 1", "time = 500"), each = n_ind))
+
+plot_ly(temp, y = ~distance, x = ~temperature, color = ~time, type= 'scatter', mode = 'lines') |>
+layout(yaxis = list(autorange="reversed"))
+
+```
+
+The smallest sum squared difference means that the curves are aligned.  In this example the differences were calculated for all times and used an aggregation size of 60 seconds. The best match is at `r d[ match_ind][['distance']]`.
+
+```{r matching, echo=FALSE}
+plot_ly(na.omit(d), y = ~distance, x = ~align_res, type= 'scatter', mode = 'lines') |>
+layout(yaxis = list(autorange="reversed"))
+```
+
+Lets compare the best match with the template.
+
+
+```{r matchpoint, echo=FALSE}
+
+ind_1 <- match_ind:(match_ind - n_ind + 1)
+temp[, match_value := c(m[ind_1, 1], m[ind_1, 500])]
+temp_long <- melt(temp, id.vars = c('distance', 'time'))
+
+plot_ly(temp_long, y = ~distance, x = ~value, 
+        color = ~paste0(time,':', variable),colors = c('red', 'dark red', 'blue', 'dark blue'),
+        type= 'scatter', mode = 'lines+markers') |>
+layout(yaxis = list(autorange="reversed"))
+```
+
+They match very well in time.  However, it appears like is a slight spatial offset.  The offset is smaller than the sample spacing of ~0.125 m.  We can try smaller shift to see if we get better alignment.  Zoom in on the zone between 22.5 and 23.5 to see the improvement.
+
+```{r matchshift, echo=FALSE}
+
+temp_long[variable == 'match_value', distance := distance + 0.0442]
+
+plot_ly(temp_long, y = ~distance, x = ~value, 
+        color = ~paste0(time,':', variable),colors = c('coral', 'dark red', 'steelblue', 'dark blue'),
+        type= 'scatter', mode = 'lines+markers') |>
+layout(yaxis = list(autorange="reversed"))
+```
+
+We do.  The offset is ~ 0.0442 m.
+
+We can use this to potentially reduce noise, improve data resolution and get redundant thermal conductivity values. 
+
+

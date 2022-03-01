@@ -183,6 +183,119 @@ arma::mat solve_arma(const arma::mat x, const arma::mat y) {
 
 
 
+//' @title rolling_diff
+//' 
+//' 
+//' @param x matrix
+//' @param y integer vector
+//' 
+//' @examples
+//' 
+//' @export
+// [[Rcpp::export]]
+arma::vec rolling_diff(const arma::mat x, const arma::uvec inds) {
+  
+  std::size_t nr = x.n_rows;
+  std::size_t max_ind = arma::max(inds);
+  std::size_t ni = inds.n_elem;
+  std::size_t to_ind;
+  
+  
+  arma::mat m = x.rows(inds);
+  arma::mat z = arma::flipud(x);
+
+  arma::vec s(nr);
+  s.fill(NA_REAL);
+  
+  for (std::size_t i = 0; i < (nr-max_ind); i++) {
+    to_ind = i + ni - 1;
+    
+    s[nr - i - 1] = arma::accu(arma::pow((z.rows(i, i + ni - 1) - m), 2));
+  
+  }
+  
+  return(s);
+}
+
+
+//' @title refine_match
+//' 
+//' 
+//' @param x matrix
+//' @param y vector
+//' 
+//' @examples
+//' 
+//' @export
+// [[Rcpp::export]]
+arma::ivec refine_match(const arma::mat x, const arma::mat y, double resolution_sub = 0.01) {
+  
+  unsigned n = y.n_rows;
+  unsigned nc = y.n_cols;
+  
+  arma::vec x_in = arma::regspace(1.0, n);
+  arma::vec x_out = arma::regspace(1.0, n);
+  arma::vec interps = arma::regspace(-0.5, resolution_sub, 0.5);
+  unsigned n_interps = interps.n_elem;
+  arma::ivec ind(nc);
+  arma::vec z(n);
+  arma::vec trim_x(n-2);
+  arma::vec yi_up(n_interps);
+
+  double s_new, s = 1e12;
+  
+  for (unsigned i = 0; i < nc; i++) {
+    trim_x = x.col(i).subvec(1, n-2);
+    ind[i] = 0;
+    s = 1e12;
+    for (unsigned j = 0; j < n_interps; j++) {
+      x_in = x_out + interps[j];
+      arma::interp1(x_in, y.col(i), x_out, yi_up, "*linear");
+    
+      s_new = arma::accu(arma::pow(trim_x - yi_up.subvec(1, n-2), 2));
+      
+      if (s_new < s) {
+        ind[i] = j + 1;
+        s = s_new;
+      }
+      
+      
+    }
+    
+  }  
+  
+  
+  return(ind);
+}
+
+
+
+
+
+/*** R
+library(microbenchmark)
+library(collapse)
+
+# system.time({
+# bb <- rolling_diff(m, inds)
+#   # cc <- refine_match(bb, m[inds,])
+# })
+
+
+# n <- 1e7
+# x <- rnorm(n)
+# microbenchmark(
+#   mean_cpp(x),
+#   fmean(x),
+#   mean(x),
+#   mean(x, na.rm = TRUE),
+#   sum(x),
+#   sum_cpp(x),
+#   times = 10
+# )
+
+*/
+
 // //' @title Sum the difference between dts matrix by row or by column
 // //' 
 // //' 

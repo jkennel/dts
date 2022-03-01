@@ -85,6 +85,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rolling_diff
+arma::vec rolling_diff(const arma::mat x, const arma::uvec inds);
+RcppExport SEXP _dts_rolling_diff(SEXP xSEXP, SEXP indsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec >::type inds(indsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rolling_diff(x, inds));
+    return rcpp_result_gen;
+END_RCPP
+}
+// refine_match
+arma::ivec refine_match(const arma::mat x, const arma::mat y, double resolution_sub);
+RcppExport SEXP _dts_refine_match(SEXP xSEXP, SEXP ySEXP, SEXP resolution_subSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::mat >::type y(ySEXP);
+    Rcpp::traits::input_parameter< double >::type resolution_sub(resolution_subSEXP);
+    rcpp_result_gen = Rcpp::wrap(refine_match(x, y, resolution_sub));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_dts_read_file_cpp", (DL_FUNC) &_dts_read_file_cpp, 1},
@@ -93,6 +118,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_dts_residual_variance_with_trace", (DL_FUNC) &_dts_residual_variance_with_trace, 3},
     {"_dts_diff_by_trace", (DL_FUNC) &_dts_diff_by_trace, 3},
     {"_dts_solve_arma", (DL_FUNC) &_dts_solve_arma, 2},
+    {"_dts_rolling_diff", (DL_FUNC) &_dts_rolling_diff, 2},
+    {"_dts_refine_match", (DL_FUNC) &_dts_refine_match, 3},
     {NULL, NULL, 0}
 };
 

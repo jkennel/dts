@@ -4,14 +4,16 @@
 \alias{fit_convolve}
 \title{fit_convolve}
 \usage{
-fit_convolve(x, n_knots = 10, cool_mult = 0.5, type = "start")
+fit_convolve(x, cool_mult = 0.5, time_var = "start", n_knots = NULL)
 }
 \arguments{
 \item{x}{}
 
-\item{n_knots}{}
-
 \item{cool_mult}{}
+
+\item{time_var}{}
+
+\item{n_knots}{}
 }
 \value{
 

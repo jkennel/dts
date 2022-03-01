@@ -371,7 +371,9 @@ read_dts_xml_3 <- function(in_dir,
                         time_aggregate_interval, distance) |>
       dplyr::summarise(temperature_sd = stddev_pop(temperature),
                        temperature = mean(temperature, na.rm = TRUE)) |>
-      dplyr::collect() |> data.table::setDT()
+      dplyr::collect() |>
+      dplyr::ungroup() |>
+      data.table::setDT()
     
     setkey(dat, start, distance)
     

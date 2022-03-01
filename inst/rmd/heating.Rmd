@@ -24,7 +24,7 @@ e_t <- max(get_time_table(dts)[heated == TRUE]$start)
 if (heating_distance == 'NA') {
   # step find heating_distances
   dts <- heating_distance(dts,
-                          heating_type = 'heating')
+                          heating_type = 'both')
 } else {
   dts <- set_values_for_distance(dts,
                                  variable_name = 'heated',

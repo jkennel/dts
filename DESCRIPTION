@@ -30,6 +30,7 @@ Imports:
     bookdown,
     stringi,
     duckdb,
+    glmnet,
     DBI
 LinkingTo:
     Rcpp,

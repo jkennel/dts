@@ -81,3 +81,29 @@ solve_arma <- function(x, y) {
     .Call(`_dts_solve_arma`, x, y)
 }
 
+#' @title rolling_diff
+#' 
+#' 
+#' @param x matrix
+#' @param y integer vector
+#' 
+#' @examples
+#' 
+#' @export
+rolling_diff <- function(x, inds) {
+    .Call(`_dts_rolling_diff`, x, inds)
+}
+
+#' @title refine_match
+#' 
+#' 
+#' @param x matrix
+#' @param y vector
+#' 
+#' @examples
+#' 
+#' @export
+refine_match <- function(x, y, resolution_sub = 0.01) {
+    .Call(`_dts_refine_match`, x, y, resolution_sub)
+}
+

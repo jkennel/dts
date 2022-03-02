@@ -32,7 +32,7 @@ pad_output <- function(x) {
 fit_convolve <- function(x,
                          cool_mult = 0.5,
                          time_var = 'start',
-                         n_knots = NULL 
+                         n_knots = NULL
 ) {
   
 
@@ -62,10 +62,11 @@ fit_convolve <- function(x,
   
   # input vector
   n <- nrow(output) / 2
+  
   input <- rep(0.0, nrow(output))
   input[(n):(n+di)] <- 1.0
   
-  knots <- c(0:5, 6 + waterlevel::log_lags(n_knots, n-6))
+  knots <- c(0:10, 11 + waterlevel::log_lags(n_knots, n-11))
   
   # generate distributed lags
   dl <- waterlevel::distributed_lag(x = input, 
@@ -93,7 +94,7 @@ fit_convolve <- function(x,
                 intercept = FALSE,
                 family = 'gaussian',
                 nfolds = 10,
-                lambda = 10^(seq(-3, -1, 0.01)),
+                lambda = 10^(seq(-3, -1, 0.1)),
                 relax = TRUE,
                 alpha = 0))[-1]))
     
@@ -106,7 +107,8 @@ fit_convolve <- function(x,
                            delta_time_log = c(diff(log(et)), NA),
                            delta_temperature = as.numeric(out), 
                            cumulative_delta_temperature = cumsum(as.numeric(out)), 
-                           depth = colnames(output)[[i]])
+                           distance = as.numeric(colnames(output)[[i]]),
+                           temperature = as.numeric(output[,i]))
   }
   
   
@@ -114,14 +116,26 @@ fit_convolve <- function(x,
   
 }
 
+
+# x <- subset_distance(dts, begin = 80, end = 130)
+# fc <- fit_convolve(x)
+# 
+# pdf()
+# # fc[, plot(pmax(delta_temperature/elapsed_time_log, 1e-4)~elapsed_time, ylim = c(1e-4, 1), log = 'xy', type = 'l', main = distance), by = distance]
+# fc[, plot(temperature~elapsed_time, ylim = c(0,10), log = 'x', type = 'l', main = distance), by = distance]
 # dev.off()
-
-
+# 
+# # fc[data.table(depth = 40:50), on = 'depth']
+# 
+# # dev.off()
+# 
+# 
 # plot(diff(cumsum(out)) / diff(et), type = 'l', log = 'xy')
-
-# plot(c(log(et), NA), (output[, nn]), col = 'red', ylim = c(0, 8), pch = 20, cex = 0.5)
+# 
+# plot(x = c(log(et), NA), y = as.numeric((output[, i])), col = 'red', pch = 20, cex = 0.5)
 # points(log(et), cumsum(out), type = 'l')
-# plot(output[, nn] - cumsum(out), type = 'l', ylim = c(-1, 1))
+# plot(output[, i] - cumsum(out), type = 'l', ylim = c(-1, 1))
+
 # abline(h = 0)
 
 # points((et), (7.5 / (4.0 * pi)) * c(NA,diff(log(et))) / pmax(out, 1e-4), type = 'l',

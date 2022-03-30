@@ -48,7 +48,7 @@ fit_convolve <- function(x,
   dt <- diff(heat_times[1:2])
   
   if(is.null(n_knots)) {
-    n_knots <- 2
+    n_knots <- 12
   }
   
   
@@ -68,18 +68,17 @@ fit_convolve <- function(x,
   
   knots <- c(hydrorecipes::log_lags(n_knots, n))
   
-  # generate distributed lags
-  dl <- waterlevel::distributed_lag(x = input, 
-                                    knots = knots, 
-                                    spline_fun = splines::ns,
-                                    lag_name = '',
-                                    n_subset = 1, 
-                                    n_shift = 0)
+
   
   bl <- splines::ns(min(knots):max(knots), 
                     knots = knots[-c(1, length(knots))],
                     Boundary.knots = c(min(knots), max(knots)),
                     intercept = TRUE)
+  
+  # generate distributed lags
+  dl <- hydrorecipes::distributed_lag(x = input, 
+                                      basis_mat = bl, 
+                                      knots = knots)
   
   wh <- which(is.na(dl[, 1]))
   dl <- dl[-wh, ]

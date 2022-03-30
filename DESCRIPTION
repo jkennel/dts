@@ -31,7 +31,8 @@ Imports:
     stringi,
     duckdb,
     glmnet,
-    DBI
+    DBI,
+    hydrorecipes
 LinkingTo:
     Rcpp,
     RcppArmadillo, 

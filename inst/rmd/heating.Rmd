@@ -5,7 +5,7 @@
 if (heating_times == 'NA') {
   # step find heating_times
   dts <- heating_time(dts,
-                      heating_type = 'both')
+                      heating_type = 'heating')
 } else {
   dts <- set_values_for_time(dts, 
                              variable_name = 'type', 

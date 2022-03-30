@@ -23,8 +23,8 @@ correlate_with_temperature <- function(x,
   
   # determine cutoff
   n       <- length(r_2)
-  max_r_2 <- max(r_2)
-  cutoff  <- max(max_r_2) - buffer * max_r_2
+  max_r_2 <- max(r_2, na.rm = TRUE)
+  cutoff  <- max(max_r_2, na.rm = TRUE) - buffer * max_r_2
   wh      <- which(r_2 > cutoff)
   wh_1    <- wh[wh <= n/2]
   wh_2    <- wh[wh > n/2]

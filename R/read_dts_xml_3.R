@@ -271,6 +271,12 @@ read_dts_xml_3 <- function(in_dir,
   # write the new file with header
   fwrite(as.list(c(nms, 'start')), out_file)
   
+  skip <- 0
+  if(trim) {
+    skip <- which(meta[['distance']] >= 0)[1]
+    meta[['distance']] <- meta[['distance']][-(1:(skip-1))]
+  }
+  
   # set up parallel cluster
   cl <- parallel::makePSOCKcluster(n_cores)
   parallel::clusterExport(cl = cl, 
@@ -279,7 +285,8 @@ read_dts_xml_3 <- function(in_dir,
                             'select',
                             'type',
                             'keys',
-                            'data_pattern'), 
+                            'data_pattern',
+                            'skip'), 
                           envir = environment())
   
   dts <- parallel::parLapply(cl, fn, function(x) {
@@ -295,14 +302,14 @@ read_dts_xml_3 <- function(in_dir,
       bot <- substr(xml_text, e, e + 900L)
       
       vals <- as.list(c(
-        as.numeric(fastPOSIXct(stri_match_first_regex(xml_text, keys$pattern[1:2])[, 2])),
-        as.numeric(stri_match_first_regex(bot, keys$pattern[3:11])[, 2])))
+        as.numeric(fasttime::fastPOSIXct(stringi::stri_match_first_regex(xml_text, keys$pattern[1:2])[, 2])),
+        as.numeric(stringi::stri_match_first_regex(bot, keys$pattern[3:11])[, 2])))
       
     } else {
       s <- regexpr('<logData>', xml_text, fixed = TRUE)[[1]][1] + 9L
       e <- regexpr('</logData>', xml_text, fixed = TRUE)[[1]][1] - 1L
       
-      vals <- stri_match_first_regex(xml_text, keys$pattern)[, 2]
+      vals <- stringi::stri_match_first_regex(xml_text, keys$pattern)[, 2]
       vals <- as.list(c(
         as.numeric(fastPOSIXct(vals[1:2])), 
         as.numeric(vals[3:11])))
@@ -310,29 +317,31 @@ read_dts_xml_3 <- function(in_dir,
     
     
     # Read in the data
-    dat <- fread(stri_replace_all_fixed(
-      substr(xml_text, s, e),
-      pattern = data_pattern,
-      replacement = c(""),
-      vectorize_all = FALSE),
+    dat <- data.table::fread(
+      stringi::stri_replace_all_fixed(
+        substr(xml_text, s, e),
+        pattern = data_pattern,
+        replacement = c(""),
+        vectorize_all = FALSE),
+      skip = skip,
       select = select, 
       colClasses = 'numeric',
       blank.lines.skip = TRUE,
       nThread = 1)
     
     # Add start time
-    set(dat, j = 'start', value = vals[[1]])
+    data.table::set(dat, j = 'start', value = vals[[1]])
     
     
     # Write data to file in append mode
-    fwrite(dat,
+    data.table::fwrite(dat,
            file = file.path(folder_path, 'dts_data.csv'),
            append = TRUE,
            quote = FALSE,
            col.names = FALSE,
            nThread = 1)
     
-    setDT(vals)
+    data.table::setDT(vals)
   })
   
   # stop cluster

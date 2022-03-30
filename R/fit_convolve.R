@@ -60,13 +60,13 @@ fit_convolve <- function(x,
   output <- to_matrix(output)
   output <- pad_output(output)
   
+  
   # input vector
   n <- nrow(output) / 2
-  
   input <- rep(0.0, nrow(output))
   input[(n):(n+di)] <- 1.0
   
-  knots <- c(0:10, 11 + waterlevel::log_lags(n_knots, n-11))
+  knots <- c(hydrorecipes::log_lags(n_knots, n))
   
   # generate distributed lags
   dl <- waterlevel::distributed_lag(x = input, 
@@ -81,32 +81,32 @@ fit_convolve <- function(x,
                     Boundary.knots = c(min(knots), max(knots)),
                     intercept = TRUE)
   
-  wh <- which(is.na(dl[,1]))
-  dl <- dl[-wh,]
-  output <- output[-wh,]
-  
+  wh <- which(is.na(dl[, 1]))
+  dl <- dl[-wh, ]
+  output <- output[-c(wh), , drop = FALSE]
   dat <- list()
   for(i in 1:ncol(output)) {
     coefs <- (as.matrix(coefficients(
       glmnet::cv.glmnet(dl, output[, i], 
                 lower.limits = 0, 
-                upper.limits = c(0, rep(Inf, length(knots) - 1)), 
-                intercept = FALSE,
+                upper.limits = c(rep(Inf, length(knots))), 
+                intercept = TRUE,
                 family = 'gaussian',
                 nfolds = 10,
-                lambda = 10^(seq(-3, -1, 0.1)),
+                lambda = 10^(seq(-3, -1.5, 0.1)),
                 relax = TRUE,
-                alpha = 0))[-1]))
+                alpha = 0))))
     
-    out <- bl %*% coefs
-    
+    out <- (bl %*% coefs[-1]) 
+    out[1] <- out[1] + coefs[1]
     et <- trace_time[type == 'heating']$elapsed_time
-    
+
+
     dat[[i]] <- data.table(elapsed_time = et,
                            elapsed_time_log = log(et),
                            delta_time_log = c(diff(log(et)), NA),
-                           delta_temperature = as.numeric(out), 
-                           cumulative_delta_temperature = cumsum(as.numeric(out)), 
+                           delta_temperature = as.numeric(out)[-1], 
+                           cumulative_delta_temperature = cumsum(as.numeric(out))[-1], 
                            distance = as.numeric(colnames(output)[[i]]),
                            temperature = as.numeric(output[,i]))
   }

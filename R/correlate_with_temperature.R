@@ -29,10 +29,17 @@ correlate_with_temperature <- function(x,
   wh_1    <- wh[wh <= n/2]
   wh_2    <- wh[wh > n/2]
   
+
   
   # remove first and last n_rem values
   wh      <- c(wh_1[-c(1:n_rem, length(wh_1):(length(wh_1)+1-n_rem))],
                wh_2[-c(1:n_rem, length(wh_2):(length(wh_2)+1-n_rem))])
+  
+  
+  # check temperature difference because correlation isn't the perfect metric
+  wh_d <- rowSums(abs(temp[wh, ] - calib_t))
+  med_wh_d <- median(wh_d)
+  wh <- wh[which(abs(wh_d - med_wh_d) <  med_wh_d * buffer)]
   
   wh
 }

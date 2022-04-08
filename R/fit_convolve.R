@@ -32,7 +32,7 @@ pad_output <- function(x) {
 fit_convolve <- function(x,
                          cool_mult = 0.5,
                          time_var = 'start',
-                         n_knots = NULL
+                         n_knots = 15
 ) {
   
 
@@ -41,17 +41,13 @@ fit_convolve <- function(x,
   
   heat_times <- trace_time[type == 'heating'][[time_var]]
   start_heat <- heat_times[1]
-  end_heat <- heat_times[length(heat_times)]
+  end_heat   <- heat_times[length(heat_times)]
   
   
   tt <- (as.numeric(end_heat) - as.numeric(start_heat))
   dt <- diff(heat_times[1:2])
   
-  if(is.null(n_knots)) {
-    n_knots <- 12
-  }
-  
-  
+
   di <- nrow(trace_time[type == 'heating'])
   
   output <- subset_time(x, start_heat, end_heat)
@@ -68,7 +64,6 @@ fit_convolve <- function(x,
   
   knots <- c(hydrorecipes::log_lags(n_knots, n))
   
-
   
   bl <- splines::ns(min(knots):max(knots), 
                     knots = knots[-c(1, length(knots))],

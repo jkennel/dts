@@ -71,9 +71,11 @@ fit_convolve <- function(x,
                     intercept = TRUE)
   
   # generate distributed lags
-  dl <- hydrorecipes::distributed_lag(x = input, 
+  dl <- hydrorecipes:::distributed_lag(x = input, 
                                       basis_mat = bl, 
-                                      knots = knots)
+                                      knots = knots,
+                                      n_subset=1,
+                                      n_shift=0)
   
   wh <- which(is.na(dl[, 1]))
   dl <- dl[-wh, ]

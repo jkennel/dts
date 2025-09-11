@@ -9,9 +9,6 @@ find_reference(x, ...)
 \arguments{
 \item{x}{}
 }
-\value{
-
-}
 \description{
 find_reference
 }

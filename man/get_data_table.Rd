@@ -9,12 +9,6 @@ get_data_table(x)
 \arguments{
 \item{x}{}
 }
-\value{
-
-}
 \description{
 get_data_table
-}
-\examples{
-
 }

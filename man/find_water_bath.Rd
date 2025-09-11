@@ -4,15 +4,14 @@
 \alias{find_water_bath}
 \title{find_water_bath}
 \usage{
-find_water_bath(x, ...)
+find_water_bath(x, type = "correlation", ...)
 }
 \arguments{
 \item{x}{the dts_long dataset}
 
-\item{...}{arguments to pass to correlate_with_temperature}
-}
-\value{
+\item{type}{use correlation or absolute values of temperature}
 
+\item{...}{arguments to pass to correlate_with_temperature}
 }
 \description{
 find_water_bath

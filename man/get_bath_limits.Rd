@@ -9,9 +9,6 @@ get_bath_limits(x)
 \arguments{
 \item{x}{}
 }
-\value{
-
-}
 \description{
 get_bath_limits
 }

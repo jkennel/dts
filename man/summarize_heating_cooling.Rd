@@ -9,9 +9,6 @@ summarize_heating_cooling(x)
 \arguments{
 \item{x}{}
 }
-\value{
-
-}
 \description{
 summarize_heating_cooling
 }

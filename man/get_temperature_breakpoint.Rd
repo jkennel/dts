@@ -32,9 +32,6 @@ get_temperature_breakpoint(
 
 \item{temp_col}{}
 }
-\value{
-
-}
 \description{
 get_temperature_breakpoint
 }

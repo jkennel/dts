@@ -17,9 +17,6 @@ subset_distance(x, begin = NULL, end = NULL, by = NULL, ...)
 
 \item{...}{}
 }
-\value{
-
-}
 \description{
 subset_distance
 }

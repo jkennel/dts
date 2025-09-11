@@ -14,9 +14,6 @@ write_dts(x, output_dir, ...)
 
 \item{output_dir}{}
 }
-\value{
-
-}
 \description{
 write_dts
 }

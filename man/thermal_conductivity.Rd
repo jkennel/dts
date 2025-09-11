@@ -11,9 +11,6 @@ thermal_conductivity(x, power)
 
 \item{power}{the input power to the heating cable}
 }
-\value{
-
-}
 \description{
 thermal_conductivity
 }

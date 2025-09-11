@@ -47,7 +47,7 @@ read_dts_zip <- function(file_path, ...) {
   
   unzip(file_path, exdir = t_dir, junkpaths = TRUE)
   
-  dts <- read_dts_xml(t_dir, ...)
+  dts <- read_dts_xml_3(t_dir, ...)
   
   unlink(t_dir, recursive = TRUE)
   

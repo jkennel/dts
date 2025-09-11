@@ -12,9 +12,6 @@ half_data(x, type = "head", ...)
 \arguments{
 \item{x}{type read from a dts}
 }
-\value{
-
-}
 \description{
 half_data
 }

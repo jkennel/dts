@@ -9,9 +9,6 @@ get_start_time_from_type(type)
 \arguments{
 \item{type}{}
 }
-\value{
-
-}
 \description{
 get_start_time_from_type
 }

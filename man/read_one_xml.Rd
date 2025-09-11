@@ -9,9 +9,6 @@ read_one_xml(fn)
 \arguments{
 \item{fn}{}
 }
-\value{
-
-}
 \description{
 read_one_xml
 }

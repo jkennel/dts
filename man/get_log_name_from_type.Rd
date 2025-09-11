@@ -9,9 +9,6 @@ get_log_name_from_type(type)
 \arguments{
 \item{type}{}
 }
-\value{
-
-}
 \description{
 get_log_name_from_type
 }

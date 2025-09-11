@@ -9,9 +9,6 @@ pad_output(x)
 \arguments{
 \item{x}{}
 }
-\value{
-
-}
 \description{
 pad_output
 }

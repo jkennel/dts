@@ -9,9 +9,6 @@ find_coldspray(x, type = "head")
 \arguments{
 \item{x}{}
 }
-\value{
-
-}
 \description{
 find_coldspray
 }

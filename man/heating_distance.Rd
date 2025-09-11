@@ -21,9 +21,6 @@ heating_distance(
 
 \item{heating_type}{}
 }
-\value{
-
-}
 \description{
 heating_distance
 }

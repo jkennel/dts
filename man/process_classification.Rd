@@ -11,9 +11,6 @@ process_classification(x, k = 31)
 
 \item{k}{length of median filter}
 }
-\value{
-
-}
 \description{
 process_classification
 }

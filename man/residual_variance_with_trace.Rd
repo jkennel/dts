@@ -12,6 +12,3 @@ residual_variance_with_trace(x, y, dim)
 \description{
 prediction for dts matrix by row or by column
 }
-\examples{
-
-}

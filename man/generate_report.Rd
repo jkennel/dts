@@ -21,9 +21,6 @@ generate_report(input, output_dir, fmt = "bookdown::gitbook", ...)
 
 \item{...}{heating_power, heating_type}
 }
-\value{
-
-}
 \description{
 generate_report
 }

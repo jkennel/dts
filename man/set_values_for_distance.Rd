@@ -26,9 +26,6 @@ set_values_for_distance(
 
 \item{end_distance}{}
 }
-\value{
-
-}
 \description{
 set_values_for_distance
 }

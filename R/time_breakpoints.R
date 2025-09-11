@@ -38,13 +38,17 @@ time_breakpoints.matrix <- function(x,
   if(type == 'heating') {
     sd_cut <- -sd(by_time) * 2
     ind_min <- which.min(by_time)
-    ind_before <- pmax(ind_min - 1, 1) 
     
-    if(by_time[ind_before] < sd_cut & ind_before > abs(shift)) {
-      on <- rn[ind_before]
-    } else {
-      on <- rn[ind_min]
+    for (i in 1:3) {
+      ind_before <- pmax(ind_min - 1L, 1L) 
+      
+      if (by_time[ind_before] < sd_cut & ind_before > abs(shift)) {
+        ind_min <- ind_before
+      }
+      
     }
+    on <- rn[ind_min]
+
     
     return(list(on  = on, 
                 off = max(rn) + 1.0))

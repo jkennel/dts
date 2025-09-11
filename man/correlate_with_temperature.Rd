@@ -17,9 +17,6 @@ correlate_with_temperature(x, calib_t, buffer = 0.1, power = 8, n_rem = 3)
 
 \item{n_rem}{}
 }
-\value{
-
-}
 \description{
 correlate_with_temperature
 }

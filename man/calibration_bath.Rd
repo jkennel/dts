@@ -22,9 +22,6 @@ calibration_bath(x, n_comp = 2)
 
 \item{n_comp}{}
 }
-\value{
-
-}
 \description{
 #' kmeans_distance
 #'

@@ -87,7 +87,7 @@ match_region <- function(x,
                              m[inds, ], 
                              resolution_sub = resolution_sub)
   
-  sh <- (0.5/resolution_sub - median(refinement)) * resolution_sub * si
+  sh <- (0.5 / resolution_sub - median(refinement)) * resolution_sub * si
 
   d[, distance_both := (match_ind - 1:nrow(m)) * si + d$distance[inds[1]]]
   mid <- (d$distance[match_ind] - d$distance[inds[1]])/2+d$distance[inds[1]]
@@ -98,7 +98,22 @@ match_region <- function(x,
   d[distance <= mid, direction := 'down']
   d[distance > mid, direction := 'up']
   
+  
+  # up   <- x$trace_data[d[direction == "up"], on = "distance"]
+  # out_distance <- d[direction == "down"]$distance
+  # 
+  # x$trace_data <- up[, .(temperature = approx(x = distance_both, 
+  #                                   y = temperature,
+  #                                   xout = out_distance, 
+  #                                   rule = 2)$y, 
+  #              distance = out_distance,
+  #              temperature_sd = 0), by = .(direction, start)][,.(start, distance, temperature_sd, temperature)]
+  # 
+  # 
+  # x$trace_distance <- d[direction == "down"]
+  
   x$trace_distance <- d
+  
   
   return(x)
   

@@ -9,9 +9,6 @@ get_dts_type(xml_struct)
 \arguments{
 \item{xml_struct}{}
 }
-\value{
-
-}
 \description{
 get_dts_type
 }

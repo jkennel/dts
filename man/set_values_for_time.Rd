@@ -26,9 +26,6 @@ set_values_for_time(
 
 \item{specific_depths}{}
 }
-\value{
-
-}
 \description{
 set_values_for_distance
 }

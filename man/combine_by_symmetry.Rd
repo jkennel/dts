@@ -18,9 +18,6 @@ combine_by_symmetry(x, ...)
 \arguments{
 \item{x}{}
 }
-\value{
-
-}
 \description{
 combine_by_symmetry
 }

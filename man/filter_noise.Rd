@@ -17,9 +17,6 @@ filter_noise(x, n)
 
 \item{n}{number of samples}
 }
-\value{
-
-}
 \description{
 filter_noise
 }

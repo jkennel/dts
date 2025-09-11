@@ -3,7 +3,6 @@
 \docType{package}
 \name{dts}
 \alias{dts}
-\alias{_PACKAGE}
 \alias{dts-package}
 \title{Tools for the analysis of dts}
 \description{

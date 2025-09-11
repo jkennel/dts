@@ -14,6 +14,3 @@ rolling_diff(x, inds)
 \description{
 rolling_diff
 }
-\examples{
-
-}

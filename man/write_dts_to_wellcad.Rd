@@ -18,9 +18,6 @@ write_dts_to_wellcad(x, output_dir, ...)
 
 \item{max_columns}{maximum columns that wellcad can handle}
 }
-\value{
-
-}
 \description{
 write_dts_to_wellcad
 }

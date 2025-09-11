@@ -7,13 +7,10 @@
 \usage{
 bath_calibration(x, smooth = TRUE, ...)
 
-\method{bath_calibration}{dts_long}(x, smooth = TRUE, ...)
+\method{bath_calibration}{dts_long}(x, smooth = TRUE, df = 10L, ...)
 }
 \arguments{
 \item{x}{data read from a dts}
-}
-\value{
-
 }
 \description{
 bath_calibration

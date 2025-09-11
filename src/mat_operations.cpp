@@ -75,7 +75,6 @@ arma::vec cor_with_trace(arma::mat x, arma::vec y, int dim) {
     }
   }
   
-  
   return out;
   
 }

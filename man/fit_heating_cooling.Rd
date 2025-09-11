@@ -23,9 +23,6 @@ fit_heating_cooling(
 
 \item{end}{}
 }
-\value{
-
-}
 \description{
 fit_heating_cooling
 }

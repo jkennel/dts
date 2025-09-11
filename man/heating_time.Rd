@@ -14,9 +14,6 @@ Should be a negative number.}
 
 \item{heating_type}{the type of test.  Can be "heating" or "both".}
 }
-\value{
-
-}
 \description{
 heating_time
 }

@@ -9,9 +9,6 @@ add_classification(x)
 \arguments{
 \item{x}{}
 }
-\value{
-
-}
 \description{
 add_classification
 }

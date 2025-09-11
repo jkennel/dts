@@ -9,9 +9,6 @@ get_end_time_from_type(type)
 \arguments{
 \item{type}{}
 }
-\value{
-
-}
 \description{
 get_end_time_from_type
 }

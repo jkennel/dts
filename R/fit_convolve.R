@@ -35,7 +35,7 @@ fit_convolve <- function(x,
                          n_knots = 15
 ) {
   
-
+  
   trace_time <- get_time_table(x)
   types <- unique(trace_time[['type']])
   
@@ -47,7 +47,7 @@ fit_convolve <- function(x,
   tt <- (as.numeric(end_heat) - as.numeric(start_heat))
   dt <- diff(heat_times[1:2])
   
-
+  
   di <- nrow(trace_time[type == 'heating'])
   
   output <- subset_time(x, start_heat, end_heat)
@@ -56,11 +56,10 @@ fit_convolve <- function(x,
   output <- to_matrix(output)
   output <- pad_output(output)
   
-  
   # input vector
   n <- nrow(output) / 2
   input <- rep(0.0, nrow(output))
-  input[(n):(n+di)] <- 1.0
+  input[(n+2):(n+di+1)] <- 1.0
   
   knots <- c(hydrorecipes::log_lags(n_knots, n))
   
@@ -71,33 +70,147 @@ fit_convolve <- function(x,
                     intercept = TRUE)
   
   # generate distributed lags
-  dl <- hydrorecipes:::distributed_lag(x = input, 
-                                      basis_mat = bl, 
-                                      knots = knots,
-                                      n_subset=1,
-                                      n_shift=0)
+  dl <- collapse::qM(hydrorecipes:::distributed_lag_eigen(x = input, bl = t(bl)))
   
   wh <- which(is.na(dl[, 1]))
   dl <- dl[-wh, ]
   output <- output[-c(wh), , drop = FALSE]
-  dat <- list()
+  dat <- vector("list", ncol(output))
+  print(str(output))
+  print(str(dl))
   for(i in 1:ncol(output)) {
+    print(i)
     coefs <- (as.matrix(coefficients(
       glmnet::cv.glmnet(dl, output[, i], 
-                lower.limits = 0, 
-                upper.limits = c(rep(Inf, length(knots))), 
-                intercept = TRUE,
-                family = 'gaussian',
-                nfolds = 10,
-                lambda = 10^(seq(-3, -1.5, 0.1)),
-                relax = TRUE,
-                alpha = 0))))
+                        lower.limits = -30, 
+                        upper.limits = 0, 
+                        intercept = TRUE,
+                        family = 'gaussian',
+                        # nfolds = 10,
+                        # lambda = 10^(seq(-3, -1.5, 0.1)),
+                        # relax = TRUE,
+                        alpha = 0.05)
+    )))
     
-    out <- (bl %*% coefs[-1]) 
-    out[1] <- out[1] + coefs[1]
+    print(coefs)
+    out <- (bl %*% coefs[-1,])
+    # out[1] <- out[1] + coefs[1]
     et <- trace_time[type == 'heating']$elapsed_time
+    
+    
+    dat[[i]] <- data.table(elapsed_time = et,
+                           elapsed_time_log = log(et),
+                           delta_time_log = c(diff(log(et)), NA),
+                           delta_temperature = as.numeric(out)[-1], 
+                           cumulative_delta_temperature = cumsum(as.numeric(out))[-1], 
+                           distance = as.numeric(colnames(output)[[i]]),
+                           temperature = as.numeric(output[,i]))
+  }
+  
+  
+  rbindlist(dat)
+  
+}
 
 
+
+#' fit_convolve2
+#'
+#' @param x the dts object
+#' @param n_knots number late time knots in lag model - generally keep small
+#' @param cool_mult currently not used
+#' @param time_var column name of the that contains the date time info
+#'
+#' @return table of slopes and responses
+#' @export
+#'
+#' @examples
+fit_convolve2 <- function(x,
+                          time_var = 'start',
+                          n_knots = 15
+) {
+  
+  library(hydrorecipes)
+  x <- half_05
+  time_var <- "start"
+  trace_time <- get_time_table(x)
+  types <- unique(trace_time[['type']])
+  
+  heat_times <- trace_time[type == 'heating'][[time_var]]
+  start_heat <- heat_times[1]-5
+  end_heat   <- heat_times[length(heat_times)]
+  
+  
+  tt <- (as.numeric(end_heat) - as.numeric(start_heat))
+  dt <- diff(heat_times[1:2])
+  
+  
+  di <- nrow(trace_time[type == 'heating'])
+  
+  output <- subset_time(x, start_heat, end_heat)
+  starting_vals <- get_temperature_breakpoint(x, start_heat)
+  output$trace_data[starting_vals, temperature := temperature - temperature_0, on = 'distance']
+  output <- to_matrix(output)
+  output <- pad_output(output)
+  
+  # input vector
+  n <- nrow(output) / 2
+  input <- rep(0.0, nrow(output))
+  input[(n+5):(n+di + 1)] <- 1.0
+  
+  dat <- data.table(input = as.numeric(input), output = output[,800])
+  formula <- as.formula(output~.)
+  h <- hydrorecipes::recipe(formula = formula, dat) |>
+    hydrorecipes::step_distributed_lag(input, 
+                                       knots = hydrorecipes:::log_lags(12, 2400)) |>
+    hydrorecipes::step_drop_columns(input) |>
+    step_ols(formula = formula) |>
+    hydrorecipes::prep() |>
+    hydrorecipes::bake()
+  
+  summary(lm(output~., tmp))
+  
+  plot(cumsum(hydrorecipes:::gamma_3(0:2400, 50, 1, 200)), 
+       type = 'l')
+  points(output[-(1:2400),800])
+  plot(output[-(1:2400), 800], log = 'x')
+  # knots <- c(hydrorecipes::log_lags(n_knots, n))
+  # 
+  # 
+  # bl <- splines::ns(min(knots):max(knots), 
+  #                   knots = knots[-c(1, length(knots))],
+  #                   Boundary.knots = c(min(knots), max(knots)),
+  #                   intercept = TRUE)
+  # 
+  # # generate distributed lags
+  # dl <- collapse::qM(hydrorecipes:::distributed_lag_eigen(x = input, bl = t(bl)))
+  # 
+  # wh <- which(is.na(dl[, 1]))
+  # dl <- dl[-wh, ]
+  # output <- output[-c(wh), , drop = FALSE]
+  # dat <- vector("list", ncol(output))
+  # print(str(output))
+  # print(str(dl))
+  for(i in 1:ncol(output)) {
+    print(i)
+    coefs <- (as.matrix(coefficients(
+      glmnet::cv.glmnet(dl, output[, i], 
+                        lower.limits = -30, 
+                        upper.limits = 0, 
+                        intercept = TRUE,
+                        family = 'gaussian',
+                        # nfolds = 10,
+                        # lambda = 10^(seq(-3, -1.5, 0.1)),
+                        # relax = TRUE,
+                        alpha = 0.05)
+    )))
+    
+    print(coefs)
+    out <- (bl %*% coefs[-1,])
+    # out[1] <- out[1] + coefs[1]
+    et <- trace_time[type == 'heating']$elapsed_time
+    
+    
     dat[[i]] <- data.table(elapsed_time = et,
                            elapsed_time_log = log(et),
                            delta_time_log = c(diff(log(et)), NA),

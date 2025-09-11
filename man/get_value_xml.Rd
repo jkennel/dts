@@ -11,9 +11,6 @@ get_value_xml(search_string, pattern = "(?<=>).*?(?=<)")
 
 \item{pattern}{}
 }
-\value{
-
-}
 \description{
 get_value_xml
 }

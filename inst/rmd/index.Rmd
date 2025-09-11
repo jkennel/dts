@@ -308,7 +308,7 @@ p
 meta <- get_time_table(half)
 meta <- melt(meta[, list(start,
                          probe_mean = calib_temperature,
-                         dts_bath_mean = bath_temp_dts,
+                         dts_bath_mean = bath_temperature_dts,
                          calib_adj = -calib_adj,
                          dts_adjusted = bath_temp_dts - calib_adj)],
              id.vars = 'start')
@@ -806,51 +806,51 @@ p
 <!-- - Porosity estimation -->
 
 
-<!-- ## Thermal conductivity at elapsed times -->
+## Thermal conductivity at elapsed times
 
-<!-- ```{r message = FALSE, warning = FALSE} -->
-<!-- # n_sub <- 5 -->
-<!-- # half_05 <- average_time(half, n_sub) -->
-<!-- # fits <- fit_convolve(half_05, n_knots = 6, cool_mult = 2) -->
-<!-- #  -->
-<!-- # y <- seq(n_sub, nrow(fits)*n_sub, by = n_sub) -->
-<!-- #  -->
-<!-- # log_deriv <- function(x, y) { -->
-<!-- #   x / (log(data.table::shift(y, n = 1, type = 'lead')) - log(data.table::shift(y, n = 1, type = 'lag'))) -->
-<!-- # } -->
-<!-- # ld <- apply(fits, 2, function(x) log_deriv(x, y)) -->
-<!-- # ld[is.na(ld)] <- 0 -->
-<!-- # fits <- apply(ld, 2, function(x) aquifer::fftw_convolve(x, waterlevel::window_rectangular(301))) -->
-<!-- # fits <- cbind(get_distance_table(half_05)[, list(distance, classification)], t(fits)) -->
-<!-- #  -->
-<!-- # fits <- fits[classification == 6] -->
-<!-- # fits[, classification := NULL] -->
-<!-- #  -->
-<!-- # fits <- melt(fits, id.vars = 'distance') -->
-<!-- # fits[, variable := as.numeric(gsub('V', '', variable)) * 5] -->
-<!-- # fits[, thermal_conductivity := thermal_conductivity(value, 7.5)] -->
-<!-- #  -->
-<!-- # p <- ggplot(fits[variable %in% seq(1800, 3600*8, 300)], -->
-<!-- #             aes(y = thermal_conductivity, x = distance)) + -->
-<!-- #   geom_line() + -->
-<!-- #   geom_hline(yintercept = 4.6, color = 'red') + -->
-<!-- #   scale_x_reverse() + -->
-<!-- #   scale_y_continuous(limits = c(0, 100)) + -->
-<!-- #   scale_color_viridis_c() + -->
-<!-- #   coord_flip() + -->
-<!-- #   theme_bw() + -->
-<!-- #   transition_states(variable) + -->
-<!-- #   ease_aes('cubic-in-out') +  -->
-<!-- #   labs(title = "Slope at elapsed time: {round(frame * 300 + 1500, 0)}") -->
-<!-- #  -->
-<!-- # options(gganimate.device = 'png') -->
-<!-- # options(gganimate.nframes = 91) -->
-<!-- # options(gganimate.fps = 10) -->
-<!-- # options(gganimate.renderer = ffmpeg_renderer()) -->
-<!-- # options(gganimate.dev_args = list(width = 600, height= 500)) -->
-<!-- # animate(p, device = 'png') -->
+```{r message = FALSE, warning = FALSE}
+n_sub <- 5
+half_05 <- average_time(half, n_sub)
+fits <- fit_convolve(half_05, n_knots = 6, cool_mult = 2)
 
-<!-- ``` -->
+# y <- seq(n_sub, nrow(fits)*n_sub, by = n_sub)
+#
+# log_deriv <- function(x, y) {
+#   x / (log(data.table::shift(y, n = 1, type = 'lead')) - log(data.table::shift(y, n = 1, type = 'lag')))
+# }
+# ld <- apply(fits, 2, function(x) log_deriv(x, y))
+# ld[is.na(ld)] <- 0
+# fits <- apply(ld, 2, function(x) aquifer::fftw_convolve(x, waterlevel::window_rectangular(301)))
+# fits <- cbind(get_distance_table(half_05)[, list(distance, classification)], t(fits))
+#
+# fits <- fits[classification == 6]
+# fits[, classification := NULL]
+#
+# fits <- melt(fits, id.vars = 'distance')
+# fits[, variable := as.numeric(gsub('V', '', variable)) * 5]
+# fits[, thermal_conductivity := thermal_conductivity(value, 7.5)]
+#
+# p <- ggplot(fits[variable %in% seq(1800, 3600*8, 300)],
+#             aes(y = thermal_conductivity, x = distance)) +
+#   geom_line() +
+#   geom_hline(yintercept = 4.6, color = 'red') +
+#   scale_x_reverse() +
+#   scale_y_continuous(limits = c(0, 100)) +
+#   scale_color_viridis_c() +
+#   coord_flip() +
+#   theme_bw() +
+#   transition_states(variable) +
+#   ease_aes('cubic-in-out') +
+#   labs(title = "Slope at elapsed time: {round(frame * 300 + 1500, 0)}")
+#
+# options(gganimate.device = 'png')
+# options(gganimate.nframes = 91)
+# options(gganimate.fps = 10)
+# options(gganimate.renderer = ffmpeg_renderer())
+# options(gganimate.dev_args = list(width = 600, height= 500))
+# animate(p, device = 'png')
+
+```
 
 
 <!-- ```{r, dev = 'png'} -->

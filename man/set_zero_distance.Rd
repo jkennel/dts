@@ -11,9 +11,6 @@ set_zero_distance(x, zero_distance = NULL)
 
 \item{zero_distance}{}
 }
-\value{
-
-}
 \description{
 set_zero_distance
 }

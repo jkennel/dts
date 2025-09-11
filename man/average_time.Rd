@@ -14,9 +14,6 @@ average_time(x, n)
 
 \item{n}{size of the interval to average in seconds}
 }
-\value{
-
-}
 \description{
 average_time
 }

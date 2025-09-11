@@ -9,9 +9,6 @@ get_n_skip_from_type(type)
 \arguments{
 \item{type}{}
 }
-\value{
-
-}
 \description{
 get_n_skip_from_type
 }

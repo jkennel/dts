@@ -11,9 +11,6 @@ find_in_xml(pattern, search_string)
 
 \item{search_string}{}
 }
-\value{
-
-}
 \description{
 find_in_xml
 }

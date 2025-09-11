@@ -35,9 +35,6 @@ read_dts_xml_3(
 
 \item{time_aggregate_interval}{}
 }
-\value{
-
-}
 \description{
 read_dts_xml_3
 }

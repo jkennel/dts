@@ -12,6 +12,3 @@ read_file_cpp(path)
 \description{
 read file fast
 }
-\examples{
-
-}

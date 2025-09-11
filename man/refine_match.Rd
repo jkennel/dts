@@ -14,6 +14,3 @@ refine_match(x, y, resolution_sub = 0.01)
 \description{
 refine_match
 }
-\examples{
-
-}

@@ -13,9 +13,6 @@ process_terminal(x, k = 15, fill_value = NA_real_)
 
 \item{fill_value}{what to fill the values with}
 }
-\value{
-
-}
 \description{
 process_terminal
 }

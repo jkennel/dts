@@ -12,6 +12,3 @@ cor_by_trace(x, dim)
 \description{
 correlation for dts matrix by row or by column
 }
-\examples{
-
-}

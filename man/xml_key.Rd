@@ -6,9 +6,6 @@
 \usage{
 xml_key(type)
 }
-\value{
-
-}
 \description{
 xml_key
 }

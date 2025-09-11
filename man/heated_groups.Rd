@@ -13,9 +13,6 @@ heated_groups(x, n_comp = 5, n_clust = 5, n_buffer = 1000)
 
 \item{n_buffer}{}
 }
-\value{
-
-}
 \description{
 heated_groups
 }

@@ -1,22 +1,29 @@
 #' find_water_bath
 #'
 #' @param x the dts_long dataset
+#' @param type use correlation or absolute values of temperature
 #' @param ... arguments to pass to correlate_with_temperature
 #'
 #' @return
 #' @export
 #'
 #' @examples
-find_water_bath <- function(x, ...) {
+find_water_bath <- function(x, type = "correlation", ...) {
   
   bath <- NULL
   
   # calculate correlation with probe temperature
+  tms <- unique(x[["trace_data"]][["start"]])
   
-  calib_t <- x[["trace_time"]][["calib_temperature"]]
+  calib_t <- x[["trace_time"]][start %in% tms][["calib_temperature"]]
   
-  wh <- correlate_with_temperature(x, calib_t, ...)
+  if(type == "correlation") {
+    wh <- correlate_with_temperature(x, calib_t, ...)
+  } else {
+    wh <- compare_with_temperature(x, calib_t, ...)
+  }
   
+  x$trace_distance[, bath := FALSE]
   x$trace_distance[wh, bath := TRUE]
   
   x

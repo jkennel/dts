@@ -14,6 +14,3 @@ solve_arma(x, y)
 \description{
 solve_arma
 }
-\examples{
-
-}

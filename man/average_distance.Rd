@@ -14,9 +14,6 @@ average_distance(x, n)
 
 \item{n}{}
 }
-\value{
-
-}
 \description{
 average_distance
 }

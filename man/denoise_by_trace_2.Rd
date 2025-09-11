@@ -9,9 +9,6 @@ denoise_by_trace_2(x)
 \arguments{
 \item{x}{}
 }
-\value{
-
-}
 \description{
 denoise_by_trace_2
 }

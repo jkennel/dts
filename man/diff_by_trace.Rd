@@ -16,6 +16,3 @@ diff_by_trace(x, shift, dim)
 \description{
 Difference between dts matrix by row or by column
 }
-\examples{
-
-}

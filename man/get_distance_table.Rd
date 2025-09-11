@@ -9,12 +9,6 @@ get_distance_table(x)
 \arguments{
 \item{x}{}
 }
-\value{
-
-}
 \description{
 get_distance_table
-}
-\examples{
-
 }

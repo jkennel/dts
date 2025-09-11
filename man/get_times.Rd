@@ -17,12 +17,6 @@ get_times(x, type = "start", ...)
 
 \item{type}{'start', 'end', or 'mid'}
 }
-\value{
-
-}
 \description{
 get_times
-}
-\examples{
-
 }

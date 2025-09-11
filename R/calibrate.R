@@ -13,13 +13,13 @@ bath_calibration <- function(x, smooth = TRUE, ...) UseMethod("bath_calibration"
 
 #' @rdname bath_calibration
 #' @export
-bath_calibration.dts_long <- function(x, smooth = TRUE, ...) {
+bath_calibration.dts_long <- function(x, smooth = TRUE, df = 10L, ...) {
   
   # smooth the probe data using natural splines
   if(smooth) {
     x$trace_time[, calib_temperature_raw := calib_temperature]
     x$trace_time[, 
-      calib_temperature := lm(calib_temperature~splines::ns(as.numeric(start), df = 10), x$trace_time)$fitted.values]
+      calib_temperature := lm(calib_temperature~splines::ns(as.numeric(start), df = df), x$trace_time)$fitted.values]
   }
   
   bath_distance <- x$trace_distance[bath == TRUE]$distance

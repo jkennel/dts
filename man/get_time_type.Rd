@@ -33,9 +33,6 @@ get_time_type(
 \arguments{
 \item{...}{}
 }
-\value{
-
-}
 \description{
 get_time_type
 }

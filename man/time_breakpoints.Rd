@@ -21,9 +21,6 @@ time_breakpoints(x, shift, col_name, type)
 
 \item{log_type}{one of heating, cooling, or both}
 }
-\value{
-
-}
 \description{
 time_breakpoints
 }

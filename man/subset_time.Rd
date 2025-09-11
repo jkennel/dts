@@ -17,9 +17,6 @@ subset_time(x, begin, end, ...)
 
 \item{...}{}
 }
-\value{
-
-}
 \description{
 subset_time
 }

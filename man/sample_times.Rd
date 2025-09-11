@@ -14,9 +14,6 @@ sample_times(x, n_traces = 100, ...)
 
 \item{...}{}
 }
-\value{
-
-}
 \description{
 sample_times
 }

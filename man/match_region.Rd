@@ -13,9 +13,6 @@ match_region(x, probs = c(0.05, 0.1), resolution_sub = 0.01)
 
 \item{resolution_sub}{}
 }
-\value{
-
-}
 \description{
 match_region
 }

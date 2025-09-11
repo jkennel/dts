@@ -39,8 +39,6 @@ dates_r_to_matlab <- function(tms) {
 #' @return dts list of results
 #' @export
 #'
-#' @example 
-#' file_path <- "/home/jonathankennel/Storage/analyses/sentry_mitchell_dts/data/2020-10-29 SEN7 MLS A-DTS 15Wm 24h.zip"
 read_dts_zip <- function(file_path, ...) {
   
   t_dir <- file.path(tempdir(), 'dts', round(as.numeric(Sys.time())))

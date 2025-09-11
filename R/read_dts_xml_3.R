@@ -333,7 +333,7 @@ read_dts_xml_3 <- function(in_dir,
     data.table::set(dat, j = 'start', value = vals[[1]])
     
     
-    # Write data to file in append mode
+    # Write data to file in append mode (collisions with parallel)
     data.table::fwrite(dat,
            file = file.path(folder_path, 'dts_data.csv'),
            append = TRUE,

@@ -14,6 +14,7 @@ to_duckdb <- function(x, dbdir, n_cores = 1) {
   
   if(ext == "zip") {
     dts <- read_dts_zip(x, n_cores = n_cores, time_aggregate_interval = 1L)
+    print(str(dts))
   } else {
     dts <- read_dts_xml_3(x, n_cores = n_cores, time_aggregate_interval = 1L)
   }
@@ -39,7 +40,7 @@ load_duckdb <- function(db_dir) {
   
   # connect to db
   con <- DBI::dbConnect(duckdb::duckdb(),
-                        dbdir = dbdir,
+                        dbdir = db_dir,
                         read_only = TRUE
   )
   

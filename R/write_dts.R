@@ -65,6 +65,7 @@ write_dts_to_wellcad.dts_long <- function(
       output_dir,
       paste0(id, 'dts_data_', i, '_', end_col, '.csv')
     )
+    print(fn)
     out <- cbind(
       distance = get_distance_table(x)$distance,
       as.data.table(m[, i:end_col])

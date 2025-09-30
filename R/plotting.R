@@ -40,8 +40,11 @@ plot_heatmap <- function(dts, trim_max = 120, trim_min = -5) {
 #' @export
 #'
 plot_distances <- function(dts, n_traces = 10) {
-  dist <- get_distance_table(dts)
-  dist <- sample_distance(dist, n_traces)
+  dts <- sample_distance(dts, n_traces)
+  dat <- get_data_table(dts)
 
-  ggplot2::ggplot()
+  ggplot2::ggplot(dat, aes(x = start, y = temperature)) +
+    geom_line() +
+    facet_wrap(distance ~ .) +
+    theme_bw()
 }

@@ -59,7 +59,6 @@ subset_distance.dts_long <- function(x, begin = NULL, end = NULL, by = NULL) {
   
   # find the distances where by is TRUE
   if (!is.null(by)) {
-    
     distances <- get_distance_table(x)[get(by) == TRUE]$distance
   }
   

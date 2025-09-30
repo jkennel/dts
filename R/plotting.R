@@ -1,0 +1,47 @@
+#' plot_heatmap
+#'
+#' @param dts the dts set
+#' @param trim_max maximum temperature values to set to NA
+#' @param trim_min minimum temperature values to set to NA
+#'
+#' @return a plotly heatmap
+#' @export
+#'
+plot_heatmap <- function(dts, trim_max = 120, trim_min = -5) {
+  m <- to_matrix(dts, col_name = 'temperature')
+
+  y_lab <- as.numeric(row.names(m))
+  x_lab <- as.POSIXct(
+    as.numeric(colnames(m)),
+    origin = "1970-01-01",
+    tz = "UTC"
+  )
+
+  m[m > trim_max] <- NA_real_
+  m[m < trim_min] <- NA_real_
+
+  plot_ly(
+    z = m,
+    x = x_lab,
+    y = y_lab,
+    colors = viridis(100),
+    type = "heatmap"
+  )
+}
+
+
+#' plot_distances
+#'
+#' @param dts the dts set
+#' @param n_traces number of traces to plot
+#' @param trim_min minimum temperature values to set to NA
+#'
+#' @return a plotly heatmap
+#' @export
+#'
+plot_distances <- function(dts, n_traces = 10) {
+  dist <- get_distance_table(dts)
+  dist <- sample_distance(dist, n_traces)
+
+  ggplot2::ggplot()
+}

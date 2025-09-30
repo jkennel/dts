@@ -14,17 +14,7 @@ set_values_for_distance(
 )
 }
 \arguments{
-\item{x}{}
-
-\item{variable_name}{}
-
-\item{specific_depths}{}
-
 \item{set_to}{}
-
-\item{start_distance}{}
-
-\item{end_distance}{}
 }
 \description{
 set_values_for_distance

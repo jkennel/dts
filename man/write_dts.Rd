@@ -10,8 +10,6 @@ write_dts(x, output_dir, ...)
 \method{write_dts}{dts_long}(x, output_dir = getwd(), ...)
 }
 \arguments{
-\item{x}{}
-
 \item{output_dir}{}
 }
 \description{

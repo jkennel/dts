@@ -7,13 +7,9 @@
 \usage{
 write_dts_to_wellcad(x, output_dir, ...)
 
-\method{write_dts_to_wellcad}{dts_long}(x, output_dir = getwd(), max_columns = 1000, ...)
+\method{write_dts_to_wellcad}{dts_long}(x, output_dir = getwd(), max_columns = 1000, id = "", ...)
 }
 \arguments{
-\item{x}{}
-
-\item{output_dir}{}
-
 \item{...}{}
 
 \item{max_columns}{maximum columns that wellcad can handle}

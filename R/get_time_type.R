@@ -46,6 +46,11 @@ get_time_type.dts_long <- function(
 
   x$trace_data <- get_data_table(x)[between(start, s, e)]
   x$trace_time <- get_time_table(x)[between(start, s, e)]
+  x$trace_time[,
+    elapsed_time := as.numeric(start) - as.numeric(start[1]),
+    by = type
+  ]
+
   x$trace_data <- x$trace_data[
     get_time_table(x),
     elapsed_time := elapsed_time,

@@ -30,6 +30,7 @@ split_distance_type.dts_long <- function(x, type_col = NULL) {
     tmp$trace_distance <- select_distance(x$trace_distance, distances)
     result[[i]] <- copy(tmp)
   }
+
   names(result) <- types
   result
 }

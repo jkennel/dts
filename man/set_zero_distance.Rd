@@ -7,8 +7,6 @@
 set_zero_distance(x, zero_distance = NULL)
 }
 \arguments{
-\item{x}{}
-
 \item{zero_distance}{}
 }
 \description{

@@ -14,17 +14,7 @@ set_values_for_time(
 )
 }
 \arguments{
-\item{x}{}
-
-\item{variable_name}{}
-
 \item{set_to}{}
-
-\item{start_distance}{}
-
-\item{end_distance}{}
-
-\item{specific_depths}{}
 }
 \description{
 set_values_for_distance

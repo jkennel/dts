@@ -64,10 +64,9 @@ plot_times <- function(dts, n = 10) {
   dat <- get_data_table(dts)
 
   plotly::ggplotly(
-    ggplot2::ggplot(dat, aes(x = temperature, y = distance)) +
+    ggplot2::ggplot(dat, aes(x = distance, y = temperature)) +
       geom_line() +
-      coord_flip() +
-      facet_wrap(start ~ ., scales = "free_x") +
+      facet_wrap(start ~ ., scales = "free_y") +
       theme_bw()
   )
 }

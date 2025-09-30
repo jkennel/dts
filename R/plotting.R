@@ -34,7 +34,6 @@ plot_heatmap <- function(dts, trim_max = 120, trim_min = -5) {
 #'
 #' @param dts the dts set
 #' @param n_traces number of traces to plot
-#' @param trim_min minimum temperature values to set to NA
 #'
 #' @return a plotly heatmap
 #' @export
@@ -47,6 +46,28 @@ plot_distances <- function(dts, n_traces = 10) {
     ggplot2::ggplot(dat, aes(x = start, y = temperature)) +
       geom_line() +
       facet_wrap(distance ~ ., scales = "free_y") +
+      theme_bw()
+  )
+}
+
+
+#' plot_times
+#'
+#' @param dts the dts set
+#' @param n_times number of traces to plot
+#'
+#' @return a plotly heatmap
+#' @export
+#'
+plot_times <- function(dts, n_traces = 10) {
+  dts <- sample_distance(dts, n_traces)
+  dat <- get_data_table(dts)
+
+  plotly::ggplotly(
+    ggplot2::ggplot(dat, aes(x = temperature, y = distance)) +
+      geom_line() +
+      coord_flip() +
+      facet_wrap(start ~ ., scales = "free_x") +
       theme_bw()
   )
 }

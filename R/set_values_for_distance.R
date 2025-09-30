@@ -19,7 +19,10 @@ set_values_for_distance <- function(
   set_to = TRUE
 ) {
   if (!variable_name %in% names(x$trace_distance)) {
-    x$trace_distance[, (variable_name) := NA]
+    cls <- class(set_to)
+    na_class <- NA
+    class(na_class) <- cls
+    x$trace_distance[, (variable_name) := na_class]
   }
 
   if (!is.na(specific_depths)) {

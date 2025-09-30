@@ -5,11 +5,11 @@
 #' @param ...
 #'
 #' @return
-#' @rdname subset_time
+#' @rdname select_time
 #' @export
 #'
 #' @examples
-select_time <- function(x, times, ...) UseMethod("subset_time")
+select_time <- function(x, times, ...) UseMethod("select_time")
 
 
 #' @rdname select_time

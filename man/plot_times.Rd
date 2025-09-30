@@ -4,12 +4,12 @@
 \alias{plot_times}
 \title{plot_times}
 \usage{
-plot_times(dts, n_traces = 10)
+plot_times(dts, n = 10)
 }
 \arguments{
 \item{dts}{the dts set}
 
-\item{n_times}{number of traces to plot}
+\item{n}{number of traces to plot}
 }
 \value{
 a plotly heatmap

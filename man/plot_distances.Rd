@@ -4,12 +4,12 @@
 \alias{plot_distances}
 \title{plot_distances}
 \usage{
-plot_distances(dts, n_traces = 10)
+plot_distances(dts, n = 10)
 }
 \arguments{
 \item{dts}{the dts set}
 
-\item{n_traces}{number of traces to plot}
+\item{n}{number of traces to plot}
 }
 \value{
 a plotly heatmap

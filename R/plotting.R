@@ -33,13 +33,13 @@ plot_heatmap <- function(dts, trim_max = 120, trim_min = -5) {
 #' plot_distances
 #'
 #' @param dts the dts set
-#' @param n_traces number of traces to plot
+#' @param n number of traces to plot
 #'
 #' @return a plotly heatmap
 #' @export
 #'
-plot_distances <- function(dts, n_traces = 10) {
-  dts <- sample_distance(dts, n_traces)
+plot_distances <- function(dts, n = 10) {
+  dts <- sample_distance(dts, n)
   dat <- get_data_table(dts)
 
   plotly::ggplotly(
@@ -54,13 +54,13 @@ plot_distances <- function(dts, n_traces = 10) {
 #' plot_times
 #'
 #' @param dts the dts set
-#' @param n_times number of traces to plot
+#' @param n number of traces to plot
 #'
 #' @return a plotly heatmap
 #' @export
 #'
-plot_times <- function(dts, n_traces = 10) {
-  dts <- sample_distance(dts, n_traces)
+plot_times <- function(dts, n = 10) {
+  dts <- sample_distance(dts, n)
   dat <- get_data_table(dts)
 
   plotly::ggplotly(

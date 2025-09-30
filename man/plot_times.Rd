@@ -4,12 +4,16 @@
 \alias{plot_times}
 \title{plot_times}
 \usage{
-plot_times(dts, n = 10)
+plot_times(dts, n = 10, trim_max = 120, trim_min = -5)
 }
 \arguments{
 \item{dts}{the dts set}
 
 \item{n}{number of traces to plot}
+
+\item{trim_max}{maximum temperature values to set to NA}
+
+\item{trim_min}{minimum temperature values to set to NA}
 }
 \value{
 a plotly heatmap

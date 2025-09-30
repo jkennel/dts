@@ -60,7 +60,7 @@ plot_distances <- function(dts, n = 10) {
 #' @export
 #'
 plot_times <- function(dts, n = 10) {
-  dts <- sample_distance(dts, n)
+  dts <- sample_times(dts, n)
   dat <- get_data_table(dts)
 
   plotly::ggplotly(

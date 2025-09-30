@@ -45,6 +45,6 @@ plot_distances <- function(dts, n_traces = 10) {
 
   ggplot2::ggplot(dat, aes(x = start, y = temperature)) +
     geom_line() +
-    facet_wrap(distance ~ .) +
+    facet_wrap(distance ~ ., scales = "free_y") +
     theme_bw()
 }

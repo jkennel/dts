@@ -55,7 +55,7 @@ plot_distances <- function(
 
   s <- ggplot2::scale_x_datetime()
   if (log_x) {
-    dat[, start := as.numeric(datetime) - as.numeric(datetime)[1]]
+    dat[, start := as.numeric(start) - as.numeric(start)[1]]
     s <- ggplot2::scale_x_log10()
   }
 

@@ -22,14 +22,6 @@ get_temperature_breakpoint(
 )
 }
 \arguments{
-\item{x}{}
-
-\item{datetime_val}{}
-
-\item{n_values}{}
-
-\item{n_buffer}{}
-
 \item{temp_col}{}
 }
 \description{

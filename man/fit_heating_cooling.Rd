@@ -13,15 +13,7 @@ fit_heating_cooling(
 )
 }
 \arguments{
-\item{x}{}
-
-\item{heating_type}{}
-
 \item{include_intercept}{}
-
-\item{start}{}
-
-\item{end}{}
 }
 \description{
 fit_heating_cooling

@@ -42,7 +42,7 @@ select_time.data.table <- function(x, times) {
 select_time_ind <- function(x, inds, ...) UseMethod("select_time")
 
 
-#' @rdname select_time
+#' @rdname select_time_ind
 #' @export
 select_time_ind.dts_long <- function(x, inds) {
   x$trace_time <- x$trace_time[inds]

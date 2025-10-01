@@ -4,6 +4,7 @@
 \alias{select_time}
 \alias{select_time.dts_long}
 \alias{select_time.data.table}
+\alias{select_time_ind}
 \title{select_time}
 \usage{
 select_time(x, times, ...)
@@ -11,6 +12,8 @@ select_time(x, times, ...)
 \method{select_time}{dts_long}(x, times)
 
 \method{select_time}{data.table}(x, times)
+
+select_time_ind(x, inds, ...)
 }
 \arguments{
 \item{x}{data read from a dts}
@@ -19,4 +22,6 @@ select_time(x, times, ...)
 }
 \description{
 select_time
+
+select_time_ind
 }

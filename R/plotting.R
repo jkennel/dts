@@ -53,9 +53,9 @@ plot_distances <- function(
   dat[temperature > trim_max, temperature := NA_real_]
   dat[temperature < trim_min, temperature := NA_real_]
 
-  s <- scale_x_continous()
+  s <- ggplot2::scale_x_continous()
   if (log_x) {
-    s <- scale_x_log10()
+    s <- ggplot2::scale_x_log10()
   }
 
   plotly::ggplotly(

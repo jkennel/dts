@@ -35,11 +35,11 @@ select_time.data.table <- function(x, times) {
 #' @param ...
 #'
 #' @return
-#' @rdname select_time
+#' @rdname select_time_ind
 #' @export
 #'
 #' @examples
-select_time_ind <- function(x, inds, ...) UseMethod("select_time")
+select_time_ind <- function(x, inds, ...) UseMethod("select_time_ind")
 
 
 #' @rdname select_time_ind

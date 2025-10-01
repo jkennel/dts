@@ -28,6 +28,29 @@ select_time.data.table <- function(x, times) {
   x[start %in% times]
 }
 
+#' select_time_ind
+#'
+#' @param x data read from a dts
+#' @param inds
+#' @param ...
+#'
+#' @return
+#' @rdname select_time
+#' @export
+#'
+#' @examples
+select_time_ind <- function(x, inds, ...) UseMethod("select_time")
+
+
+#' @rdname select_time
+#' @export
+select_time_ind.dts_long <- function(x, inds) {
+  x$trace_time <- x$trace_time[inds]
+  x$trace_data <- select_time(x$trace_data, x$trace_times$start)
+
+  x
+}
+
 
 #' select_distance
 #'

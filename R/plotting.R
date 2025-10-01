@@ -40,16 +40,28 @@ plot_heatmap <- function(dts, trim_max = 120, trim_min = -5) {
 #' @return a plotly heatmap
 #' @export
 #'
-plot_distances <- function(dts, n = 10, trim_max = 120, trim_min = -5) {
+plot_distances <- function(
+  dts,
+  n = 10,
+  trim_max = 120,
+  trim_min = -5,
+  log_x = FALSE
+) {
   dts <- sample_distance(dts, n)
   dat <- get_data_table(dts)
 
   dat[temperature > trim_max, temperature := NA_real_]
   dat[temperature < trim_min, temperature := NA_real_]
 
+  s <- scale_x_continous()
+  if (log_x) {
+    s <- scale_x_log10()
+  }
+
   plotly::ggplotly(
     ggplot2::ggplot(dat, aes(x = start, y = temperature)) +
       geom_line() +
+      s +
       facet_wrap(distance ~ ., scales = "free_y") +
       theme_bw()
   )

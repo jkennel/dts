@@ -41,11 +41,11 @@ prep_fit <- function(x, start_time, end_time, include_intercept = FALSE) {
   input <- log(unique(x[['elapsed_time']]))
 
   if (include_intercept) {
-    fit <- lm(output ~ input)
+    fit <- MASS::rlm(output ~ input)
   } else {
     output <- output - output[1, ] # remove the first value
     input <- input - input[1] # remove the first value
-    fit <- lm(output ~ input - 1) # removed intercept
+    fit <- MASS::rlm(output ~ input - 1) # removed intercept
   }
 
   out <- data.table(distance = unique(x[['distance']]))

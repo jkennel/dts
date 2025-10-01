@@ -46,7 +46,7 @@ select_time_ind <- function(x, inds, ...) UseMethod("select_time")
 #' @export
 select_time_ind.dts_long <- function(x, inds) {
   x$trace_time <- x$trace_time[inds]
-  x$trace_data <- select_time(x$trace_data, x$trace_times$start)
+  x$trace_data <- select_time(x$trace_data, x$trace_time$start)
 
   x
 }

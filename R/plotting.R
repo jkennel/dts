@@ -53,7 +53,7 @@ plot_distances <- function(
   dat[temperature > trim_max, temperature := NA_real_]
   dat[temperature < trim_min, temperature := NA_real_]
 
-  s <- ggplot2::scale_x_continous()
+  s <- ggplot2::scale_x_continuous()
   if (log_x) {
     s <- ggplot2::scale_x_log10()
   }

@@ -7,10 +7,19 @@
 #' @return a plotly heatmap
 #' @export
 #'
-plot_heatmap <- function(dts, trim_max = 120, trim_min = -5) {
+plot_heatmap <- function(
+  dts,
+  trim_max = 120,
+  trim_min = -5,
+  reverse_axis = TRUE
+) {
   m <- to_matrix(dts, col_name = 'temperature')
 
   y_lab <- as.numeric(row.names(m))
+  if (reverse_axis) {
+    y_lab <- -ylab
+  }
+
   x_lab <- as.POSIXct(
     as.numeric(colnames(m)),
     origin = "1970-01-01",

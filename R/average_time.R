@@ -84,7 +84,9 @@ log_group_time <- function(x, interval) {
 #' @export
 #'
 #' @examples
-log_average_time <- function(x, n) UseMethod("log_average_time")
+log_average_time <- function(x, time_column = "log_elapsed_time", n = 100) {
+  UseMethod("log_average_time")
+}
 
 
 #' @rdname log_average_time

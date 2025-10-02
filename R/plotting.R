@@ -17,7 +17,7 @@ plot_heatmap <- function(
 
   y_lab <- as.numeric(row.names(m))
   if (reverse_axis) {
-    y_lab <- -ylab
+    y_lab <- -y_lab
   }
 
   x_lab <- as.POSIXct(

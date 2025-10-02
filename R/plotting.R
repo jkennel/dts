@@ -17,8 +17,8 @@ plot_heatmap <- function(dts, trim_max = 120, trim_min = -5) {
     tz = "UTC"
   )
 
-  m[m > trim_max] <- NA_real_
-  m[m < trim_min] <- NA_real_
+  m[m > trim_max] <- trim_max
+  m[m < trim_min] <- trim_min
 
   plot_ly(
     z = m,

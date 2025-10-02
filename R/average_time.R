@@ -76,7 +76,8 @@ log_group_time <- function(x, interval) {
 #' log_average_time
 #'
 #' @param x data read from a dts
-#' @param n size of the interval to average in seconds
+#' @param time_column
+#' @param n
 #'
 #' @return
 #' @rdname log_average_time

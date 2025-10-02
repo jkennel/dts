@@ -12,7 +12,7 @@ log_average_time(x, n)
 \arguments{
 \item{x}{data read from a dts}
 
-\item{n}{size of the interval to average in seconds}
+\item{n}{}
 }
 \description{
 log_average_time

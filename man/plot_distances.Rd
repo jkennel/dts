@@ -4,7 +4,7 @@
 \alias{plot_distances}
 \title{plot_distances}
 \usage{
-plot_distances(dts, n = 10, trim_max = 120, trim_min = -5)
+plot_distances(dts, n = 10, trim_max = 120, trim_min = -5, log_x = FALSE)
 }
 \arguments{
 \item{dts}{the dts set}

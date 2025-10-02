@@ -4,7 +4,7 @@
 \alias{plot_heatmap}
 \title{plot_heatmap}
 \usage{
-plot_heatmap(dts, trim_max = 120, trim_min = -5)
+plot_heatmap(dts, trim_max = 120, trim_min = -5, reverse_axis = TRUE)
 }
 \arguments{
 \item{dts}{the dts set}

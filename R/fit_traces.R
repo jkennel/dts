@@ -70,6 +70,47 @@ add_fit_columns <- function(x) {
   as.data.table(t(vapply(sum_fit, param_summary, FUN.VALUE = numeric(4))))
 }
 
+
+# this needs to be reworked
+#' fit_rlm
+#'
+#' @param x
+#' @param d
+#' @param start_fit
+#' @param end_fit
+#' @param plot
+#'
+#' @return
+#' @export
+#'
+#' @examples
+fit_rlm <- function(x, d, start_fit = 3600, end_fit = 80000, plot = FALSE) {
+  dat <- copy(x)
+  f <- MASS::rlm(
+    temperature ~ log_elapsed_time,
+    dat[between(elapsed_time, start_fit, end_fit)]
+  )
+
+  dat[, temperature_fit := NA_real_]
+  dat[
+    between(elapsed_time, start_fit, end_fit),
+    temperature_fit := as.numeric(f$fitted.values)
+  ]
+
+  if (plot) {
+    plot(temperature ~ log_elapsed_time, dat, type = "l", main = round(d, 2))
+    points(
+      temperature_fit ~ log_elapsed_time,
+      dat,
+      type = "l",
+      col = "red",
+      lwd = 3
+    )
+  }
+
+  coef(f)[2]
+}
+
 #
 #
 # pad_input_output <- function(x) {

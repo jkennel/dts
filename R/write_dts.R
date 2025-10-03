@@ -43,7 +43,7 @@ write_dts_to_wellcad <- function(x, output_dir, ...) {
 #' @export
 write_dts_to_wellcad.dts_long <- function(
   x,
-  file = getwd(),
+  output_dir = getwd(),
   max_columns = 1000,
   id = "",
   ...

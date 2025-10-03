@@ -4,10 +4,10 @@
 \alias{fit_rlm}
 \title{fit_rlm}
 \usage{
-fit_rlm(x, d, start_fit = 3600, end_fit = 80000, plot = FALSE)
+fit_rlm(x, d, start_fit = 3600, end_fit = 80000, plot = FALSE, title = "")
 }
 \arguments{
-\item{plot}{}
+\item{title}{}
 }
 \description{
 fit_rlm

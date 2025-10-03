@@ -5,7 +5,7 @@
 \alias{log_average_time.dts_long}
 \title{log_average_time}
 \usage{
-log_average_time(x, n)
+log_average_time(x, time_column = "log_elapsed_time", n = 100)
 
 \method{log_average_time}{dts_long}(x, time_column = "log_elapsed_time", n = 100)
 }

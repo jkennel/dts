@@ -79,12 +79,20 @@ add_fit_columns <- function(x) {
 #' @param start_fit
 #' @param end_fit
 #' @param plot
+#' @param title
 #'
 #' @return
 #' @export
 #'
 #' @examples
-fit_rlm <- function(x, d, start_fit = 3600, end_fit = 80000, plot = FALSE, title = "") {
+fit_rlm <- function(
+  x,
+  d,
+  start_fit = 3600,
+  end_fit = 80000,
+  plot = FALSE,
+  title = ""
+) {
   dat <- copy(x)
   f <- MASS::rlm(
     temperature ~ log_elapsed_time,
@@ -98,8 +106,12 @@ fit_rlm <- function(x, d, start_fit = 3600, end_fit = 80000, plot = FALSE, title
   ]
 
   if (plot) {
-    plot(temperature ~ log_elapsed_time, dat, type = "l", 
-    main = paste0(title," ", round(d, 2), " distance")
+    plot(
+      temperature ~ log_elapsed_time,
+      dat,
+      type = "l",
+      main = paste0(title, " ", round(d, 2), " distance")
+    )
     points(
       temperature_fit ~ log_elapsed_time,
       dat,

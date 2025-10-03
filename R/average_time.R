@@ -126,8 +126,8 @@ log_average_time.dts_long <- function(
     .SDcols = sapply(get_time_table(x), is.numeric)
   ]
 
-  x$trace_data[!is.finite(time_interval_center), time_interval_center := 0]
-  x$trace_time[!is.finite(time_interval_center), time_interval_center := 0]
+  x$trace_data[!is.finite(time_interval_group), time_interval_group := 0]
+  x$trace_time[!is.finite(time_interval_group), time_interval_group := 0]
 
   class(x) <- c('dts_time_subset', class(x))
   x

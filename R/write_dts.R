@@ -43,7 +43,7 @@ write_dts_to_wellcad <- function(x, output_dir, ...) {
 #' @export
 write_dts_to_wellcad.dts_long <- function(
   x,
-  output_dir = getwd(),
+  file = getwd(),
   max_columns = 1000,
   id = "",
   ...
@@ -54,7 +54,7 @@ write_dts_to_wellcad.dts_long <- function(
 
   m <- to_matrix(get_data_table(x))
 
-  colnames(m) <- as.character(get_time_table(x)$start)
+  colnames(m) <- unique(as.character(get_time_table(x)$start))
 
   n <- ncol(m)
   subs <- seq(1, n, max_columns)

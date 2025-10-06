@@ -35,9 +35,14 @@ average_time.dts_long <- function(x, n = 30) {
   wh <- sapply(get_data_table(x), is.numeric)
 
   wh['distance'] <- FALSE
+
+  if ("type" %in% names(x$trace_time)) {
+    x$trace_data <- x$trace_data[x$trace_time[, .(start, type)], on = "start"]
+  }
+
   x$trace_data <- get_data_table(x)[,
     lapply(.SD, mean),
-    by = list(start = group_time(start, n), distance),
+    by = list(start = group_time(start, n), distance, type = type),
     .SDcols = wh
   ]
 
@@ -102,10 +107,18 @@ log_average_time.dts_long <- function(
 
   wh['distance'] <- FALSE
 
+  if ("type" %in% names(x$trace_time)) {
+    x$trace_data <- x$trace_data[x$trace_time[, .(start, type)], on = "start"]
+  }
+
   x$trace_data <- get_data_table(x)[,
     lapply(.SD, mean),
     by = list(
-      time_interval_group = log_group_time(get(time_column), interval),
+      time_interval_group = log_group_time(
+        get(time_column),
+        interval,
+        type = type
+      ),
       distance
     ),
     .SDcols = wh
@@ -120,7 +133,11 @@ log_average_time.dts_long <- function(
       lapply(.SD, mean)
     ),
     by = list(
-      time_interval_group = log_group_time(get(time_column), interval),
+      time_interval_group = log_group_time(
+        get(time_column),
+        interval,
+        type = type
+      ),
       type = type
     ),
     .SDcols = sapply(get_time_table(x), is.numeric)

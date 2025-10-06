@@ -61,7 +61,7 @@ average_time.dts_long <- function(x, n = 30) {
     by = list(time_interval_group = group_time(start, n), type = type),
     .SDcols = sapply(get_time_table(x), is.numeric)
   ]
-  setnames(x$trace_time, 'time_interval_group', 'start')
+  #  setnames(x$trace_time, 'time_interval_group', 'start')
 
   class(x) <- c('dts_time_subset', class(x))
   x

@@ -41,7 +41,11 @@ average_time.dts_long <- function(x, n = 30) {
 
   x$trace_data <- get_data_table(x)[,
     c(start = mean(start), lapply(.SD, mean)),
-    by = list(start = group_time(start, n), distance, type = type),
+    by = list(
+      time_interval_group = group_time(start, n),
+      distance,
+      type = type
+    ),
     .SDcols = wh
   ]
 

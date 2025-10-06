@@ -54,6 +54,9 @@ write_dts_to_wellcad.dts_long <- function(
 
   m <- to_matrix(get_data_table(x))
 
+  print(colnames(m))
+  print(unique(as.character(get_time_table(x)$start)))
+
   colnames(m) <- unique(as.character(get_time_table(x)$start))
 
   n <- ncol(m)

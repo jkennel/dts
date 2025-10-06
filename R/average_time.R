@@ -32,13 +32,12 @@ average_time <- function(x, n) UseMethod("average_time")
 #' @rdname average_time
 #' @export
 average_time.dts_long <- function(x, n = 30) {
-  wh <- sapply(get_data_table(x), is.numeric)
-
-  wh['distance'] <- FALSE
-
   if ("type" %in% names(x$trace_time)) {
     x$trace_data <- x$trace_data[x$trace_time[, .(start, type)], on = "start"]
   }
+  wh <- sapply(get_data_table(x), is.numeric)
+
+  wh['distance'] <- FALSE
 
   x$trace_data <- get_data_table(x)[,
     lapply(.SD, mean),
@@ -103,13 +102,13 @@ log_average_time.dts_long <- function(
 ) {
   interval <- 1.0 / n
 
-  wh <- sapply(get_data_table(x), is.numeric)
-
-  wh['distance'] <- FALSE
-
   if ("type" %in% names(x$trace_time)) {
     x$trace_data <- x$trace_data[x$trace_time[, .(start, type)], on = "start"]
   }
+
+  wh <- sapply(get_data_table(x), is.numeric)
+
+  wh['distance'] <- FALSE
 
   x$trace_data <- get_data_table(x)[,
     lapply(.SD, mean),

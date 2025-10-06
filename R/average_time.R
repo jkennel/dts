@@ -37,10 +37,10 @@ average_time.dts_long <- function(x, n = 30) {
   }
   wh <- sapply(get_data_table(x), is.numeric)
 
-  wh['distance'] <- FALSE
+  wh["distance"] <- FALSE
 
   x$trace_data <- get_data_table(x)[,
-    lapply(.SD, mean),
+    c(start = mean(start), lapply(.SD, mean)),
     by = list(start = group_time(start, n), distance, type = type),
     .SDcols = wh
   ]
@@ -51,6 +51,7 @@ average_time.dts_long <- function(x, n = 30) {
       max_time = max(end),
       mean_time = mean(mid),
       min_time = min(start),
+      start = mean(start),
       lapply(.SD, mean)
     ),
     by = list(time_interval_group = group_time(start, n), type = type),

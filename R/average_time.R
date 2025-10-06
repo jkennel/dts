@@ -120,9 +120,9 @@ log_average_time.dts_long <- function(
     by = list(
       time_interval_group = log_group_time(
         get(time_column),
-        interval,
-        type = type
+        interval
       ),
+      type = type,
       distance
     ),
     .SDcols = wh
@@ -139,8 +139,7 @@ log_average_time.dts_long <- function(
     by = list(
       time_interval_group = log_group_time(
         get(time_column),
-        interval,
-        type = type
+        interval
       ),
       type = type
     ),

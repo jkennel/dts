@@ -121,7 +121,7 @@ fit_rlm <- function(
     )
   }
 
-  list(ssr = deviance(f), slope = coef(f)[2])
+  list(mean_ssr = deviance(f) / .N, slope = coef(f)[2])
 }
 
 #

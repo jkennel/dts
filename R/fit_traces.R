@@ -122,9 +122,8 @@ fit_rlm <- function(
   }
 
   list(
-    median_residual_sq = median(residuals(f)^2),
     ssr = deviance(f),
-    mean_ssr = deviance(f) / .N,
+    mean_ssr = deviance(f) / length(residuals(f)),
     slope = coef(f)[2]
   )
 }

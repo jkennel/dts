@@ -25,8 +25,8 @@ split_up_down.data.table <- function(x, begin, termination, end, ...) {
   x[between(start, begin, termination), up_down := "down"]
   x[between(start, termination, end), up_down := "up"]
 
-  x[up_down == "down", distance := distance - start_distance]
-  x[up_down == "up", distance := end_distance - distance]
+  x[up_down == "down", distance := distance - begin]
+  x[up_down == "up", distance := end - distance]
 
   x
 }

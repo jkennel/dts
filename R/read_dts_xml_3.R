@@ -277,7 +277,6 @@ read_dts_xml_3 <- function(
   }
 
   # set column names
-  print(return_stokes)
   double_ended <- meta[['device']][['double_ended']]
   if (double_ended) {
     if (return_stokes) {
@@ -431,37 +430,40 @@ read_dts_xml_3 <- function(
     # Read in the on disk file
     # Aggregate based on a time subset interval
     #   - Give mean and standard deviation
-    dat <- arrow::open_dataset(out_file, format = 'csv') |>
-      arrow::to_duckdb() |>
-      dplyr::group_by(
-        start = floor(start / time_aggregate_interval) *
-          time_aggregate_interval,
-        distance
-      ) |>
-      dplyr::summarise(
-        temperature_sd = stddev_pop(temperature),
-        temperature = mean(temperature, na.rm = TRUE)
-      ) |>
-      dplyr::collect() |>
-      dplyr::ungroup() |>
-      data.table::setDT()
+    #    dat <- arrow::open_dataset(out_file, format = 'csv') |>
+    #      arrow::to_duckdb() |>
+    #      dplyr::group_by(
+    #        start = floor(start / time_aggregate_interval) *
+    #          time_aggregate_interval,
+    #        distance
+    #      ) |>
+    #      dplyr::summarise(
+    #        temperature_sd = stddev_pop(temperature),
+    #        temperature = mean(temperature, na.rm = TRUE)
+    #      ) |>
+    #      dplyr::collect() |>
+    #      dplyr::ungroup() |>
+    #      data.table::setDT()
 
+    dat <- fread(
+      "C:/Users/jkennel/Documents/r_analysis/dts/dts_data/dts_data.csv"
+    )
     setkey(dat, start, distance)
 
     # data.table aggregation method
-    dts <- dts[,
-      lapply(.SD, mean, na.rm = TRUE),
-      by = list(
-        start = anytime(
-          as.integer(start %/% time_aggregate_interval) *
-            time_aggregate_interval,
-          tz = 'UTC'
-        )
-      )
-    ]
+    #    dts <- dts[,
+    #      lapply(.SD, mean, na.rm = TRUE),
+    #      by = list(
+    #        start = anytime(
+    #          as.integer(start %/% time_aggregate_interval) *
+    #            time_aggregate_interval,
+    #          tz = 'UTC'
+    #        )
+    #      )
+    #    ]
 
-    dts[, mid := start + time_aggregate_interval / 2.0]
-    dts[, end := start + time_aggregate_interval]
+    #    dts[, mid := start + time_aggregate_interval / 2.0]
+    #    dts[, end := start + time_aggregate_interval]
 
     dat[, start := anytime(start, tz = 'UTC')]
   }

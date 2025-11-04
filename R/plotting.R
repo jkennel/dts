@@ -51,7 +51,7 @@ plot_heatmap <- function(
 #'
 plot_distances <- function(
   dts,
-  n = 10,
+  n = 9,
   trim_max = 120,
   trim_min = -5,
   log_x = FALSE
@@ -88,7 +88,7 @@ plot_distances <- function(
 #' @return a plotly heatmap
 #' @export
 #'
-plot_times <- function(dts, n = 10, trim_max = 120, trim_min = -5) {
+plot_times <- function(dts, n = 9, trim_max = 120, trim_min = -5) {
   dts <- sample_times(dts, n)
   dat <- get_data_table(dts)
 

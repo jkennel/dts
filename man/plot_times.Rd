@@ -4,7 +4,7 @@
 \alias{plot_times}
 \title{plot_times}
 \usage{
-plot_times(dts, n = 10, trim_max = 120, trim_min = -5)
+plot_times(dts, n = 9, trim_max = 120, trim_min = -5)
 }
 \arguments{
 \item{dts}{the dts set}

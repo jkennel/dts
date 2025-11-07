@@ -526,13 +526,12 @@ read_dts_xml_4 <- function(
     unzip(file_path, exdir = t_dir, junkpaths = TRUE)
     # get, subset, and sort xml file names
     fn <- list.files(t_dir, full.names = FALSE, pattern = '*.xml$')
+    fn <- file.path(t_dir, fn)
   } else {
     fn <- list.files(file_path, full.names = FALSE, pattern = '*.xml$')
   }
 
   fn <- sort(fn, method = 'radix')[1:pmin(length(fn), max_files)]
-
-  fn <- file.path(t_dir, fn)
 
   # get the constant meta data from the first XML file
   meta <- read_one_xml(fn[1])
@@ -650,7 +649,9 @@ read_dts_xml_4 <- function(
   # stop cluster
   parallel::stopCluster(cl)
 
-  unlink(t_dir, recursive = TRUE)
+  if (ext == "zip") {
+    unlink(t_dir, recursive = TRUE)
+  }
 
   dat <- rbindlist(lapply(dts, "[[", 1L))
   setnames(dat, c(nms, 'start'))

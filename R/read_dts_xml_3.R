@@ -242,7 +242,6 @@ read_one_xml <- function(fn) {
 #' @param in_memory
 #' @param output_rds
 #' @param trim
-#' @param time_aggregate_interval
 #'
 #' @return
 #' @export
@@ -256,8 +255,8 @@ read_dts_xml_3 <- function(
   return_stokes = FALSE,
   in_memory = FALSE,
   output_rds = FALSE,
-  trim = TRUE,
-  time_aggregate_interval = 60L
+  trim = TRUE
+  # time_aggregate_interval = 60L
 ) {
   # get, subset, and sort xml file names
   fn <- list.files(in_dir, full.names = FALSE, pattern = '*.xml$')
@@ -445,9 +444,7 @@ read_dts_xml_3 <- function(
     #      dplyr::ungroup() |>
     #      data.table::setDT()
 
-    dat <- fread(
-      out_file
-    )
+    dat <- fread(out_file)
     setkey(dat, start, distance)
 
     # data.table aggregation method

@@ -223,7 +223,7 @@ to_duckdb_2 <- function(
 
   dat <- rbindlist(lapply(dts, "[[", 1L))
   setnames(dat, c(nms, 'start'))
-  dat[, start := anytime(start, tz = 'UTC')]
+  dat[, start := as.POSIXct(start, tz = 'UTC')]
   setkey(dat, start, distance)
 
   dts <- rbindlist(lapply(dts, "[[", 2L))
@@ -236,9 +236,9 @@ to_duckdb_2 <- function(
   )
 
   dts[, mid := (start + end) / 2.0]
-  dts[, start := anytime(start, tz = 'UTC')]
-  dts[, mid := anytime(mid, tz = 'UTC')]
-  dts[, end := anytime(end, tz = 'UTC')]
+  dts[, start := as.POSIXct(start, tz = 'UTC')]
+  dts[, mid := as.POSIXct(mid, tz = 'UTC')]
+  dts[, end := as.POSIXct(end, tz = 'UTC')]
 
   setkey(dts, start)
 

@@ -419,13 +419,13 @@ read_dts_xml_3 <- function(
       colClasses = 'numeric'
     )
 
-    dat[, start := anytime(start, tz = 'UTC')]
+    dat[, start := as.POSIXct(start, tz = 'UTC')]
     setkey(dat, start, distance)
 
     dts[, mid := (start + end) / 2.0]
-    dts[, start := anytime(start, tz = 'UTC')]
-    dts[, mid := anytime(mid, tz = 'UTC')]
-    dts[, end := anytime(end, tz = 'UTC')]
+    dts[, start := as.POSIXct(start, tz = 'UTC')]
+    dts[, mid := as.POSIXct(mid, tz = 'UTC')]
+    dts[, end := as.POSIXct(end, tz = 'UTC')]
   } else {
     # Read in the on disk file
     # Aggregate based on a time subset interval
@@ -446,7 +446,7 @@ read_dts_xml_3 <- function(
     #      data.table::setDT()
 
     dat <- fread(
-      "C:/Users/jkennel/Documents/r_analysis/dts/dts_data/dts_data.csv"
+      out_file
     )
     setkey(dat, start, distance)
 
@@ -465,7 +465,7 @@ read_dts_xml_3 <- function(
     #    dts[, mid := start + time_aggregate_interval / 2.0]
     #    dts[, end := start + time_aggregate_interval]
 
-    dat[, start := anytime(start, tz = 'UTC')]
+    dat[, start := as.POSIXct(start, tz = 'UTC')]
   }
 
   setkey(dts, start)

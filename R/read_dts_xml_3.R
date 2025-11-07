@@ -572,9 +572,15 @@ read_dts_xml_4 <- function(
   keys <- xml_key(type)
 
   skip <- 0L
-  if (trim) {
+  nr <- Inf
+  if (all(trim == TRUE)) {
     skip <- which(meta[['distance']] >= 0)[1L]
     meta[['distance']] <- meta[['distance']][-(1L:(skip - 1L))]
+  } else if (length(trim) == 2) {
+    skip <- which(meta[['distance']] >= trim[1])[1L]
+    nr <- max(which(meta[['distance']] <= trim[2]))
+    nr <- nr - skip
+    meta[['distance']] <- meta[['distance']][skip:nr]
   }
 
   # set up parallel cluster
@@ -633,6 +639,7 @@ read_dts_xml_4 <- function(
         vectorize_all = FALSE
       ),
       skip = skip,
+      nrows = n,
       select = select,
       colClasses = 'numeric',
       blank.lines.skip = TRUE,

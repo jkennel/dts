@@ -386,7 +386,7 @@ read_dts_xml_3 <- function(
     # Add start time
     data.table::set(dat, j = 'start', value = vals[[1]])
 
-    # Write data to file in append mode (collisions with parallel)
+    # Write data to file in append mode (collisions with parallel on Windows!)
     data.table::fwrite(
       dat,
       file = file.path(folder_path, 'dts_data.csv'),
@@ -528,7 +528,7 @@ read_dts_xml_4 <- function(
     fn <- list.files(t_dir, full.names = FALSE, pattern = '*.xml$')
     fn <- file.path(t_dir, fn)
   } else {
-    fn <- list.files(file_path, full.names = FALSE, pattern = '*.xml$')
+    fn <- list.files(file_path, full.names = TRUE, pattern = '*.xml$')
   }
 
   fn <- sort(fn, method = 'radix')[1:pmin(length(fn), max_files)]

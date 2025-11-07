@@ -691,8 +691,7 @@ read_dts_xml_4 <- function(
     trace_time = dts,
     trace_distance = distance,
     device = meta$device,
-    channels = meta$channels,
-    dir = out_dir
+    channels = meta$channels
   )
 
   class(dts) <- c('dts_long', class(dts))
